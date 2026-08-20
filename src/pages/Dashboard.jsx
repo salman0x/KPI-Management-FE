@@ -80,17 +80,22 @@ export default function Dashboard() {
   const [startDate, setStartDate] = useState("2026-08-01");
   const [endDate, setEndDate] = useState("2026-08-31");
 
+  // Filter task: Karyawan hanya melihat task pribadinya, HR melihat semua task
+  const displayedTasks = isHR
+    ? taskList
+    : taskList.filter((t) => t.assignee.toLowerCase().includes("sari") || t.assignee.toLowerCase().includes(userName.toLowerCase()));
+
   // Hitung data statistik dinamis dari task list
-  const totalTasks = taskList.length;
-  const backlogCount = taskList.filter((t) => t.status === "Backlog").length;
-  const readyCount = taskList.filter((t) => t.status === "Ready").length;
-  const onProgressCount = taskList.filter((t) => t.status === "On Progress").length;
-  const qaCount = taskList.filter((t) => t.status === "QA").length;
-  const doneCount = taskList.filter((t) => t.status === "Done").length;
-  const totalPoints = taskList.reduce((acc, curr) => acc + (Number(curr.point) || 0), 0);
+  const totalTasks = displayedTasks.length;
+  const backlogCount = displayedTasks.filter((t) => t.status === "Backlog").length;
+  const readyCount = displayedTasks.filter((t) => t.status === "Ready").length;
+  const onProgressCount = displayedTasks.filter((t) => t.status === "On Progress").length;
+  const qaCount = displayedTasks.filter((t) => t.status === "QA").length;
+  const doneCount = displayedTasks.filter((t) => t.status === "Done").length;
+  const totalPoints = displayedTasks.reduce((acc, curr) => acc + (Number(curr.point) || 0), 0);
 
   const statCards = [
-    { title: "Total Task", value: totalTasks, sub: "All Task", icon: <FaClipboardList />, bg: "bg-accent-light", color: "text-accent" },
+    { title: "Total Task", value: totalTasks, sub: isHR ? "Semua Tim" : "Tugas Saya", icon: <FaClipboardList />, bg: "bg-accent-light", color: "text-accent" },
     { title: "Backlog", value: backlogCount, sub: "Tasks", icon: <FaFolderOpen />, bg: "bg-orange-50", color: "text-orange-500" },
     { title: "Ready", value: readyCount, sub: "Tasks", icon: <FaCheckCircle />, bg: "bg-blue-50", color: "text-blue-500" },
     { title: "On Progress", value: onProgressCount, sub: "Tasks", icon: <FaRegClock />, bg: "bg-amber-50", color: "text-amber-500" },
@@ -192,16 +197,18 @@ export default function Dashboard() {
         {/* Task list section */}
         <div className="mt-6 flex flex-col gap-3">
           <div className="flex items-center justify-between mb-1">
-            <h3 className="font-bold text-gray-800 text-base">Daftar Task Berjalan</h3>
-            <span className="text-xs text-gray-400">Total: {taskList.length} Tugas</span>
+            <h3 className="font-bold text-gray-800 text-base">
+              {isHR ? "Daftar Task Seluruh Tim" : "Riwayat Tugas & Progres Saya"}
+            </h3>
+            <span className="text-xs text-gray-400">Total: {displayedTasks.length} Tugas</span>
           </div>
 
-          {taskList.length === 0 ? (
+          {displayedTasks.length === 0 ? (
             <div className="bg-white rounded-2xl p-8 text-center text-gray-400 border border-gray-100 text-sm">
               Tidak ada task yang tersisa.
             </div>
           ) : (
-            taskList.map((task) => (
+            displayedTasks.map((task) => (
               <div
                 key={task.id}
                 className="bg-white rounded-2xl p-4 md:p-5 shadow-xs border border-gray-100 hover:shadow-md transition-all flex flex-wrap md:flex-nowrap items-center justify-between gap-4"
@@ -239,21 +246,29 @@ export default function Dashboard() {
                   </span>
                 </div>
 
-                {/* Action Buttons: Edit & Delete */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setEditingTask({ ...task })}
-                    className="flex items-center gap-1.5 text-xs font-semibold border border-gray-200 rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all cursor-pointer"
-                  >
-                    <FaEdit size={11} className="text-primary" /> Edit
-                  </button>
-                  <button
-                    onClick={() => setDeleteConfirmId(task.id)}
-                    className="flex items-center gap-1.5 text-xs font-semibold border border-red-200 bg-red-50/50 rounded-xl px-3 py-1.5 text-red-600 hover:bg-red-100/70 transition-all cursor-pointer"
-                  >
-                    <FaTrashAlt size={11} /> Delete
-                  </button>
-                </div>
+                {/* Action Buttons: Khusus HR */}
+                {isHR ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setEditingTask({ ...task })}
+                      className="flex items-center gap-1.5 text-xs font-semibold border border-gray-200 rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all cursor-pointer"
+                      title="Ubah data & poin task (Mode HR)"
+                    >
+                      <FaEdit size={11} className="text-primary" /> Edit
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirmId(task.id)}
+                      className="flex items-center gap-1.5 text-xs font-semibold border border-red-200 bg-red-50/50 rounded-xl px-3 py-1.5 text-red-600 hover:bg-red-100/70 transition-all cursor-pointer"
+                      title="Hapus task (Mode HR)"
+                    >
+                      <FaTrashAlt size={11} /> Delete
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-[11px] text-gray-400 bg-gray-50 px-2.5 py-1 rounded-xl border border-gray-200/60 font-medium">
+                    Riwayat Tugas
+                  </div>
+                )}
               </div>
             ))
           )}
