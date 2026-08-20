@@ -24,7 +24,7 @@ const INITIAL_DASHBOARD_TASKS = [
   {
     id: "TSK-001",
     title: "Implementasi Integrasi Autentikasi Google OAuth",
-    point: 85,
+    point: 28,
     start: "2026-08-06",
     deadline: "2026-08-10",
     status: "On Progress",
@@ -33,7 +33,7 @@ const INITIAL_DASHBOARD_TASKS = [
   {
     id: "TSK-002",
     title: "UI/UX Redesign Form Evaluasi KPI & Modal Penilaian",
-    point: 90,
+    point: 20,
     start: "2026-08-06",
     deadline: "2026-08-10",
     status: "Done",
@@ -42,7 +42,7 @@ const INITIAL_DASHBOARD_TASKS = [
   {
     id: "TSK-003",
     title: "Testing Stress Load & Penyesuaian Response Time API",
-    point: 85,
+    point: 16,
     start: "2026-08-06",
     deadline: "2026-08-10",
     status: "Code Review",

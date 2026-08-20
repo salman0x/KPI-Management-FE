@@ -24,7 +24,7 @@ import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
 
 // Nilai Poin Standar Sesuai Catatan Mentor / ClickUp
-const SP_OPTIONS = [1, 2, 3, 4, 5, 8, 12, 16, 18, 20, 28, 85, 90, 100];
+const SP_OPTIONS = [1, 2, 3, 4, 5, 8, 12, 16, 18, 20, 28, 241];
 
 // Status alur kerja ala ClickUp
 const STATUSES = [
@@ -47,7 +47,7 @@ const INITIAL_TASKS = [
     deadline: "22 Agu 2026",
     sla: "48 Jam",
     status: "On Progress",
-    point: 85, // Diisi oleh PO / HR
+    point: 28, // Sesuai daftar SP mentor
     backwardCount: 0,
   },
   {
@@ -99,7 +99,7 @@ const INITIAL_TASKS = [
     deadline: "14 Agu 2026",
     sla: "48 Jam",
     status: "Done",
-    point: 90,
+    point: 20,
     backwardCount: 0,
   },
 ];
