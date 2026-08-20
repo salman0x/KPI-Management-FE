@@ -161,34 +161,35 @@ export default function CalendarPage() {
   });
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gray-50 h-screen overflow-hidden flex flex-col">
       <Header />
       <Sidebar />
 
-      <main className={`${collapsed ? "ml-20" : "ml-64"} pt-16 p-8 transition-all duration-300`}>
+      <main className={`${collapsed ? "ml-20" : "ml-64"} pt-16 px-8 pb-4 flex-1 flex flex-col overflow-hidden transition-all duration-300`}>
         {/* Header Kalender Sesuai Desain */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
+            <h1 className="text-xl md:text-2xl font-extrabold text-gray-900 tracking-tight">
               {MONTH_NAMES[currentMonth]} {currentYear}
             </h1>
-            <p className="text-gray-400 text-xs md:text-sm mt-0.5 font-normal">
+            <p className="text-gray-400 text-xs font-normal">
               Manage deadlines and employee schedules.
             </p>
           </div>
 
           {/* Controls: View Mode, Filter Status, Filter Team, Navigasi Bulan */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             {/* View Switch: List | Month | Week */}
             <div className="bg-gray-100/90 p-1 rounded-xl flex items-center">
               {["List", "Month", "Week"].map((mode) => (
                 <button
                   key={mode}
                   onClick={() => setViewType(mode)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${viewType === mode
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    viewType === mode
                       ? "bg-white text-gray-800 shadow-xs border border-gray-100"
                       : "text-gray-500 hover:text-gray-800"
-                    }`}
+                  }`}
                 >
                   {mode}
                 </button>
@@ -200,7 +201,7 @@ export default function CalendarPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-white border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-light cursor-pointer shadow-2xs"
+                className="bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-light cursor-pointer shadow-2xs"
               >
                 <option value="All Statuses">All Statuses</option>
                 <option value="Backlog">Backlog</option>
@@ -217,7 +218,7 @@ export default function CalendarPage() {
               <select
                 value={teamFilter}
                 onChange={(e) => setTeamFilter(e.target.value)}
-                className="bg-white border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-light cursor-pointer shadow-2xs"
+                className="bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-light cursor-pointer shadow-2xs"
               >
                 <option value="All Teams">All Teams</option>
                 <option value="Engineering">Engineering</option>
@@ -230,37 +231,42 @@ export default function CalendarPage() {
             <div className="flex items-center bg-white border border-gray-200 rounded-xl p-0.5 shadow-2xs">
               <button
                 onClick={handlePrevMonth}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                 title="Bulan Sebelumnya"
               >
-                <FaChevronLeft size={11} />
+                <FaChevronLeft size={10} />
               </button>
-              <div className="h-4 w-[1px] bg-gray-200"></div>
+              <div className="h-3.5 w-[1px] bg-gray-200"></div>
               <button
                 onClick={handleNextMonth}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                 title="Bulan Berikutnya"
               >
-                <FaChevronRight size={11} />
+                <FaChevronRight size={10} />
               </button>
             </div>
           </div>
         </div>
 
-        {/* View Mode: MONTH (Google Calendar Style Grid) */}
+        {/* View Mode: MONTH (Google Calendar Style Grid - Pas 1 Layar Penuh) */}
         {viewType === "Month" && (
-          <div className="bg-white rounded-3xl border border-gray-200/80 shadow-sm overflow-hidden">
+          <div className="flex-1 flex flex-col bg-white rounded-3xl border border-gray-200/80 shadow-sm overflow-hidden min-h-0">
             {/* Header Hari: SUN, MON, TUE, WED, THU, FRI, SAT */}
-            <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50/50 text-center text-[11px] font-bold text-gray-500 py-3 tracking-wider">
+            <div className="shrink-0 grid grid-cols-7 border-b border-gray-200 bg-gray-50/50 text-center text-[10px] font-bold text-gray-500 py-2 tracking-wider">
               {DAYS_OF_WEEK.map((day) => (
                 <div key={day}>{day}</div>
               ))}
             </div>
 
-            {/* Grid Sel Kalender */}
-            <div className="grid grid-cols-7 divide-x divide-y divide-gray-100">
+            {/* Grid Sel Kalender (Mengisi 100% sisa tinggi layar tanpa scroll) */}
+            <div
+              className="flex-1 grid grid-cols-7 divide-x divide-y divide-gray-100 min-h-0"
+              style={{
+                gridTemplateRows: `repeat(${Math.ceil(calendarCells.length / 7)}, minmax(0, 1fr))`,
+              }}
+            >
               {calendarCells.map((cell, idx) => {
-                const isSelectedToday = cell.isCurrentMonth && cell.dayNumber === 11; // Contoh tanggal aktif seperti di desain
+                const isSelectedToday = cell.isCurrentMonth && cell.dayNumber === 11;
                 const cellEvents = filteredEvents.filter(
                   (e) =>
                     e.day === cell.dayNumber &&
@@ -271,42 +277,44 @@ export default function CalendarPage() {
                 return (
                   <div
                     key={idx}
-                    className={`min-h-[115px] p-2 flex flex-col justify-between transition-colors ${cell.isCurrentMonth ? "bg-white" : "bg-gray-50/40 text-gray-300"
-                      } ${isSelectedToday
+                    className={`h-full p-1.5 flex flex-col justify-between overflow-hidden transition-colors ${
+                      cell.isCurrentMonth ? "bg-white" : "bg-gray-50/40 text-gray-300"
+                    } ${
+                      isSelectedToday
                         ? "ring-2 ring-inset ring-accent bg-accent/5 rounded-xs"
                         : "hover:bg-gray-50/70"
-                      }`}
+                    }`}
                   >
                     {/* Baris Atas: Nomor Tanggal & Indikator Titik */}
-                    <div className="flex items-center justify-between">
-                      {/* Indikator titik biru seperti di desain (misal tanggal 3) */}
+                    <div className="flex items-center justify-between shrink-0">
                       {cell.isCurrentMonth && cell.dayNumber === 3 ? (
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent ml-1"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent ml-0.5"></span>
                       ) : (
                         <span></span>
                       )}
 
                       <span
-                        className={`text-xs font-semibold inline-flex items-center justify-center ${isSelectedToday
-                            ? "w-6 h-6 rounded-full bg-accent text-white font-bold"
+                        className={`text-[11px] font-semibold inline-flex items-center justify-center ${
+                          isSelectedToday
+                            ? "w-5 h-5 rounded-full bg-accent text-white font-bold text-[10px]"
                             : cell.isCurrentMonth
-                              ? cell.dayNumber === 10
-                                ? "text-accent font-bold"
-                                : "text-gray-700"
-                              : "text-gray-300"
-                          }`}
+                            ? cell.dayNumber === 10
+                              ? "text-accent font-bold"
+                              : "text-gray-700"
+                            : "text-gray-300"
+                        }`}
                       >
                         {cell.dayNumber}
                       </span>
                     </div>
 
                     {/* Daftar Event / Deadline di Tanggal Ini */}
-                    <div className="flex flex-col gap-1 mt-1">
+                    <div className="flex flex-col gap-1 overflow-hidden my-auto">
                       {cellEvents.map((evt) => (
                         <button
                           key={evt.id}
                           onClick={() => setSelectedEvent(evt)}
-                          className={`w-full text-left text-[10px] font-semibold px-2 py-1 rounded-md border transition-all truncate cursor-pointer ${evt.color}`}
+                          className={`w-full text-left text-[9.5px] font-semibold px-1.5 py-0.5 rounded border transition-all truncate cursor-pointer leading-tight ${evt.color}`}
                           title={`${evt.title} (${evt.assignee} - ${evt.status})`}
                         >
                           {evt.title}

@@ -16,6 +16,7 @@ import Header from "../layouts/Header";
 import Sidebar from "../layouts/Sidebar";
 import PageHeader from "../layouts/PageHeader";
 import { useSidebar } from "../context/SidebarContext";
+import { useAuth } from "../context/AuthContext";
 
 const INITIAL_EMPLOYEES = [
   {
@@ -107,6 +108,9 @@ const INITIAL_EMPLOYEES = [
 
 export default function Employees() {
   const { collapsed } = useSidebar();
+  const { currentUser } = useAuth();
+  const isHR = currentUser?.role === "HR";
+
   const [employees, setEmployees] = useState(INITIAL_EMPLOYEES);
   const [selectedRole, setSelectedRole] = useState("All");
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -161,12 +165,14 @@ export default function Employees() {
       <main className={`${collapsed ? "ml-20" : "ml-64"} pt-16 p-8 transition-all duration-300`}>
         {/* Page Header */}
         <PageHeader title="Employee Directory" subtitle="Daftar profil pengembang dan ringkasan capaian performa KPI">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer"
-          >
-            <FaUserPlus size={13} /> Tambah Karyawan
-          </button>
+          {isHR && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer"
+            >
+              <FaUserPlus size={13} /> Tambah Karyawan
+            </button>
+          )}
         </PageHeader>
 
         {/* Filter Toolbar */}

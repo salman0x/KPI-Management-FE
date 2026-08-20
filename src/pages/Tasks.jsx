@@ -13,12 +13,18 @@ import {
   FaTools,
   FaRedoAlt,
   FaUserCircle,
+  FaStar,
+  FaEdit,
 } from "react-icons/fa";
 
 import Header from "../layouts/Header";
 import Sidebar from "../layouts/Sidebar";
 import PageHeader from "../layouts/PageHeader";
 import { useSidebar } from "../context/SidebarContext";
+import { useAuth } from "../context/AuthContext";
+
+// Nilai Poin Standar Sesuai Catatan Mentor / ClickUp
+const SP_OPTIONS = [1, 2, 3, 4, 5, 8, 12, 16, 18, 20, 28, 85, 90, 100];
 
 // Status alur kerja ala ClickUp
 const STATUSES = [
@@ -41,7 +47,7 @@ const INITIAL_TASKS = [
     deadline: "22 Agu 2026",
     sla: "48 Jam",
     status: "On Progress",
-    point: 85, // Diisi oleh PO
+    point: 85, // Diisi oleh PO / HR
     backwardCount: 0,
   },
   {
@@ -107,10 +113,17 @@ const CATEGORY_BADGES = {
 
 export default function Tasks() {
   const { collapsed } = useSidebar();
+  const { currentUser } = useAuth();
+  const isHR = currentUser?.role === "HR";
+
   const [tasks, setTasks] = useState(INITIAL_TASKS);
   const [viewMode, setViewMode] = useState("kanban"); // "kanban" | "list"
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTaskForPoint, setSelectedTaskForPoint] = useState(null);
+  const [inputPoint, setInputPoint] = useState(5);
+  const [draggedTaskId, setDraggedTaskId] = useState(null);
+  const [dragOverColumn, setDragOverColumn] = useState(null);
 
   // State Form Tambah Task (Sebagai Karyawan - TIDAK ADA input Point)
   const [newTask, setNewTask] = useState({
@@ -128,6 +141,49 @@ export default function Tasks() {
   const filteredTasks = tasks.filter((task) => {
     return selectedCategory === "All" || task.category === selectedCategory;
   });
+
+  // Simpan Poin oleh HR / PO
+  const handleSavePoint = (e) => {
+    e.preventDefault();
+    if (!selectedTaskForPoint) return;
+
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === selectedTaskForPoint.id ? { ...t, point: Number(inputPoint) } : t
+      )
+    );
+    setSelectedTaskForPoint(null);
+  };
+
+  // Drag and Drop Handlers (Ala ClickUp)
+  const handleDragStart = (e, taskId) => {
+    e.dataTransfer.setData("text/plain", taskId);
+    setDraggedTaskId(taskId);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDragEnter = (colId) => {
+    setDragOverColumn(colId);
+  };
+
+  const handleDragLeave = (colId) => {
+    if (dragOverColumn === colId) {
+      setDragOverColumn(null);
+    }
+  };
+
+  const handleDrop = (e, targetStatus) => {
+    e.preventDefault();
+    const taskId = e.dataTransfer.getData("text/plain") || draggedTaskId;
+    if (taskId) {
+      handleStatusChange(taskId, targetStatus);
+    }
+    setDraggedTaskId(null);
+    setDragOverColumn(null);
+  };
 
   // Handle Tambah Task Baru oleh Karyawan
   const handleCreateTask = (e) => {
@@ -239,33 +295,53 @@ export default function Tasks() {
 
         {/* View Mode: KANBAN BOARD */}
         {viewMode === "kanban" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-start overflow-x-auto pb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5 items-start overflow-x-auto pb-6">
             {STATUSES.map((col) => {
               const colTasks = filteredTasks.filter((t) => t.status === col.id);
+              const isOver = dragOverColumn === col.id;
+
               return (
-                <div key={col.id} className="bg-gray-100/70 rounded-2xl p-3.5 border border-gray-200/70 flex flex-col min-h-[500px]">
+                <div
+                  key={col.id}
+                  onDragOver={handleDragOver}
+                  onDragEnter={() => handleDragEnter(col.id)}
+                  onDragLeave={() => handleDragLeave(col.id)}
+                  onDrop={(e) => handleDrop(e, col.id)}
+                  className={`rounded-2xl p-3 border transition-all duration-200 flex flex-col min-h-[520px] ${
+                    isOver
+                      ? "bg-primary-light/50 border-primary border-2 border-dashed shadow-md"
+                      : "bg-gray-100/70 border-gray-200/70"
+                  }`}
+                >
                   {/* Column Header */}
-                  <div className="flex items-center justify-between pb-3 border-b border-gray-200 mb-3">
+                  <div className="flex items-center justify-between pb-2.5 border-b border-gray-200 mb-2.5">
                     <div className="flex items-center gap-2">
                       <span className={`w-2.5 h-2.5 rounded-full ${col.dot}`}></span>
                       <h3 className="text-xs font-bold text-gray-800">{col.label}</h3>
                     </div>
-                    <span className="text-[11px] font-semibold bg-white text-gray-600 px-2 py-0.5 rounded-full border border-gray-200">
+                    <span className="text-[11px] font-semibold bg-white text-gray-600 px-2 py-0.5 rounded-full border border-gray-200 shadow-2xs">
                       {colTasks.length}
                     </span>
                   </div>
 
                   {/* Task Cards in Column */}
-                  <div className="flex flex-col gap-3 flex-1">
+                  <div className="flex flex-col gap-2.5 flex-1">
                     {colTasks.length === 0 ? (
-                      <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center text-xs text-gray-400 my-auto">
-                        Tidak ada task
+                      <div className={`border-2 border-dashed rounded-xl p-4 text-center text-xs transition-colors my-auto ${
+                        isOver ? "border-primary text-primary font-semibold" : "border-gray-200 text-gray-400"
+                      }`}>
+                        {isOver ? "Lepaskan task di sini" : "Tarik task ke sini"}
                       </div>
                     ) : (
                       colTasks.map((task) => (
                         <div
                           key={task.id}
-                          className="bg-white rounded-xl p-3.5 shadow-xs border border-gray-100 hover:shadow-md transition-shadow flex flex-col gap-2.5"
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, task.id)}
+                          onDragEnd={() => setDraggedTaskId(null)}
+                          className={`bg-white rounded-xl p-3 shadow-xs border border-gray-100 hover:shadow-md transition-all flex flex-col gap-2 cursor-grab active:cursor-grabbing select-none ${
+                            draggedTaskId === task.id ? "opacity-40 scale-95 border-dashed border-primary" : ""
+                          }`}
                         >
                           {/* Top: Category & Point */}
                           <div className="flex items-center justify-between gap-1">
@@ -278,15 +354,40 @@ export default function Tasks() {
                               {task.category}
                             </span>
 
-                            {/* Point Indicator (Diisi oleh PO) */}
+                            {/* Point Indicator (Diisi oleh PO / HR) */}
                             {task.point !== null ? (
-                              <span className="text-[10px] font-bold text-accent bg-accent-light px-2 py-0.5 rounded-full border border-accent/20">
-                                {task.point} SP
-                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (isHR) {
+                                    setSelectedTaskForPoint(task);
+                                    setInputPoint(task.point);
+                                  }
+                                }}
+                                className={`text-[10px] font-bold text-accent bg-accent-light px-2 py-0.5 rounded-full border border-accent/20 flex items-center gap-1 ${
+                                  isHR ? "hover:bg-accent hover:text-white cursor-pointer" : ""
+                                }`}
+                                title={isHR ? "Klik untuk ubah poin SP (Mode HR)" : "Story Points"}
+                              >
+                                <span>{task.point} SP</span>
+                                {isHR && <FaEdit size={9} />}
+                              </button>
                             ) : (
-                              <span className="text-[9px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200" title="Poin akan dinilai oleh Product Owner">
-                                Menunggu PO
-                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (isHR) {
+                                    setSelectedTaskForPoint(task);
+                                    setInputPoint(5);
+                                  }
+                                }}
+                                className={`text-[9px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200 flex items-center gap-1 ${
+                                  isHR ? "hover:bg-primary-light hover:text-primary hover:border-primary cursor-pointer font-semibold text-primary" : ""
+                                }`}
+                                title={isHR ? "Klik untuk beri poin SP ke task ini" : "Poin akan dinilai oleh Product Owner/HR"}
+                              >
+                                <span>{isHR ? "+ Beri Poin" : "Menunggu PO"}</span>
+                              </button>
                             )}
                           </div>
 
@@ -321,40 +422,24 @@ export default function Tasks() {
                             </div>
                           </div>
 
-                          {/* Status Actions */}
-                          <div className="pt-1 flex flex-col gap-1.5">
-                            {/* Pilihan Pindah Status */}
-                            <select
-                              value={task.status}
-                              onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                              className="w-full text-[11px] bg-gray-50 border border-gray-200 rounded-lg p-1 text-gray-600 focus:outline-none cursor-pointer"
-                            >
-                              {STATUSES.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                  ➔ Pindah ke {s.label}
-                                </option>
-                              ))}
-                            </select>
-
-                            {/* Tombol Aksi Khusus jika berada di QA */}
-                            {task.status === "QA" && (
-                              <div className="flex gap-1.5">
-                                <button
-                                  onClick={() => handleRejectQA(task.id)}
-                                  className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold bg-red-50 text-red-600 hover:bg-red-100 p-1 rounded-lg border border-red-200 cursor-pointer"
-                                  title="Kembalikan task ke Developer karena ada temuan bug"
-                                >
-                                  <FaExclamationTriangle size={9} /> Reject Bug
-                                </button>
-                                <button
-                                  onClick={() => handleStatusChange(task.id, "Done")}
-                                  className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold bg-green-50 text-green-600 hover:bg-green-100 p-1 rounded-lg border border-green-200 cursor-pointer"
-                                >
-                                  <FaCheckCircle size={9} /> Lolos Done
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                          {/* Tombol Aksi Khusus jika berada di QA */}
+                          {task.status === "QA" && (
+                            <div className="pt-1 flex gap-1.5 border-t border-gray-50">
+                              <button
+                                onClick={() => handleRejectQA(task.id)}
+                                className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold bg-red-50 text-red-600 hover:bg-red-100 p-1 rounded-lg border border-red-200 cursor-pointer"
+                                title="Kembalikan task ke Developer karena ada temuan bug"
+                              >
+                                <FaExclamationTriangle size={9} /> Reject Bug
+                              </button>
+                              <button
+                                onClick={() => handleStatusChange(task.id, "Done")}
+                                className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold bg-green-50 text-green-600 hover:bg-green-100 p-1 rounded-lg border border-green-200 cursor-pointer"
+                              >
+                                <FaCheckCircle size={9} /> Lolos Done
+                              </button>
+                            </div>
+                          )}
                         </div>
                       ))
                     )}
@@ -567,6 +652,90 @@ export default function Tasks() {
                     className="px-5 py-2 rounded-xl text-xs font-semibold bg-primary hover:bg-primary-dark text-white shadow-sm cursor-pointer"
                   >
                     Simpan Task
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+        {/* MODAL: Atur Poin Task (Khusus HR/PO) */}
+        {selectedTaskForPoint && (
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
+              <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-xl bg-accent-light text-accent flex items-center justify-center font-bold text-sm">
+                    SP
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-base text-gray-800">Atur Poin Task (Mode HR/PO)</h3>
+                    <p className="text-xs text-gray-400 font-mono">{selectedTaskForPoint.id} • {selectedTaskForPoint.assignee}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedTaskForPoint(null)}
+                  className="text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-gray-100 cursor-pointer"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+
+              <form onSubmit={handleSavePoint} className="mt-4 flex flex-col gap-4">
+                <div>
+                  <p className="text-xs font-semibold text-gray-700 mb-1">Judul Tugas:</p>
+                  <p className="text-xs font-bold text-gray-900 bg-gray-50 p-2.5 rounded-xl border border-gray-200/80">
+                    {selectedTaskForPoint.title}
+                  </p>
+                </div>
+
+                {/* Pilihan Story Points Standar ClickUp */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">
+                    Pilih Story Point (SP):
+                  </label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {SP_OPTIONS.map((sp) => (
+                      <button
+                        key={sp}
+                        type="button"
+                        onClick={() => setInputPoint(sp)}
+                        className={`py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                          inputPoint === sp
+                            ? "bg-accent text-white border-accent shadow-xs scale-105"
+                            : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                        }`}
+                      >
+                        {sp} SP
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Input Custom Point */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Atau Ketik Nilai Poin Kustom:</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={inputPoint}
+                    onChange={(e) => setInputPoint(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-light"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTaskForPoint(null)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl text-xs font-semibold bg-accent hover:opacity-90 text-white shadow-sm cursor-pointer"
+                  >
+                    Simpan Poin
                   </button>
                 </div>
               </form>
