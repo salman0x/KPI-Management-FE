@@ -15,13 +15,12 @@ import Header from "../layouts/Header";
 import Sidebar from "../layouts/Sidebar";
 import { useSidebar } from "../context/SidebarContext";
 
-// Data Contoh Event / Deadline Tugas di Kalender
 const INITIAL_EVENTS = [
   {
     id: "EVT-01",
     title: "Q3 Report Final",
     day: 4,
-    month: 7, // 0-indexed: 7 = Agustus
+    month: 7,
     year: 2026,
     category: "Report",
     team: "Engineering",
@@ -99,8 +98,8 @@ const MONTH_NAMES = [
 
 export default function CalendarPage() {
   const { collapsed } = useSidebar();
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 7, 11)); // Default: Agustus 2026 (atau disesuaikan)
-  const [viewType, setViewType] = useState("Month"); // "List" | "Month" | "Week"
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 7, 11));
+  const [viewType, setViewType] = useState("Month");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
   const [teamFilter, setTeamFilter] = useState("All Teams");
   const [events, setEvents] = useState(INITIAL_EVENTS);
@@ -109,7 +108,6 @@ export default function CalendarPage() {
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
 
-  // Navigasi Bulan
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
   };
@@ -118,7 +116,6 @@ export default function CalendarPage() {
     setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
   };
 
-  // Kalkulasi hari dalam bulan untuk Kalender Grid ala Google Calendar
   const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
 
@@ -127,10 +124,8 @@ export default function CalendarPage() {
 
   const daysInPrevMonth = getDaysInMonth(currentYear, currentMonth - 1);
 
-  // Buat array grid sel (42 sel total: 6 baris x 7 kolom)
   const calendarCells = [];
 
-  // Hari-hari dari bulan sebelumnya
   for (let i = firstDayIndex - 1; i >= 0; i--) {
     calendarCells.push({
       dayNumber: daysInPrevMonth - i,
@@ -140,7 +135,6 @@ export default function CalendarPage() {
     });
   }
 
-  // Hari-hari dari bulan sekarang
   for (let i = 1; i <= daysInCurrentMonth; i++) {
     calendarCells.push({
       dayNumber: i,
@@ -150,7 +144,6 @@ export default function CalendarPage() {
     });
   }
 
-  // Sisa sel dari bulan berikutnya untuk melengkapi 5 atau 6 baris (kelipatan 7)
   const remainingCells = 35 - calendarCells.length > 0 ? 35 - calendarCells.length : 42 - calendarCells.length;
   for (let i = 1; i <= remainingCells; i++) {
     calendarCells.push({
@@ -161,7 +154,6 @@ export default function CalendarPage() {
     });
   }
 
-  // Filter event sesuai status & team
   const filteredEvents = events.filter((evt) => {
     const matchStatus = statusFilter === "All Statuses" || evt.status === statusFilter;
     const matchTeam = teamFilter === "All Teams" || evt.team === teamFilter;
@@ -193,11 +185,10 @@ export default function CalendarPage() {
                 <button
                   key={mode}
                   onClick={() => setViewType(mode)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    viewType === mode
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${viewType === mode
                       ? "bg-white text-gray-800 shadow-xs border border-gray-100"
                       : "text-gray-500 hover:text-gray-800"
-                  }`}
+                    }`}
                 >
                   {mode}
                 </button>
@@ -280,13 +271,11 @@ export default function CalendarPage() {
                 return (
                   <div
                     key={idx}
-                    className={`min-h-[115px] p-2 flex flex-col justify-between transition-colors ${
-                      cell.isCurrentMonth ? "bg-white" : "bg-gray-50/40 text-gray-300"
-                    } ${
-                      isSelectedToday
+                    className={`min-h-[115px] p-2 flex flex-col justify-between transition-colors ${cell.isCurrentMonth ? "bg-white" : "bg-gray-50/40 text-gray-300"
+                      } ${isSelectedToday
                         ? "ring-2 ring-inset ring-accent bg-accent/5 rounded-xs"
                         : "hover:bg-gray-50/70"
-                    }`}
+                      }`}
                   >
                     {/* Baris Atas: Nomor Tanggal & Indikator Titik */}
                     <div className="flex items-center justify-between">
@@ -298,15 +287,14 @@ export default function CalendarPage() {
                       )}
 
                       <span
-                        className={`text-xs font-semibold inline-flex items-center justify-center ${
-                          isSelectedToday
+                        className={`text-xs font-semibold inline-flex items-center justify-center ${isSelectedToday
                             ? "w-6 h-6 rounded-full bg-accent text-white font-bold"
                             : cell.isCurrentMonth
-                            ? cell.dayNumber === 10
-                              ? "text-accent font-bold"
-                              : "text-gray-700"
-                            : "text-gray-300"
-                        }`}
+                              ? cell.dayNumber === 10
+                                ? "text-accent font-bold"
+                                : "text-gray-700"
+                              : "text-gray-300"
+                          }`}
                       >
                         {cell.dayNumber}
                       </span>
