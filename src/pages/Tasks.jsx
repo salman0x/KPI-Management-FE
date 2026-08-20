@@ -15,6 +15,7 @@ import {
   FaUserCircle,
   FaStar,
   FaEdit,
+  FaLightbulb,
 } from "react-icons/fa";
 
 import Header from "../layouts/Header";
@@ -631,8 +632,8 @@ export default function Tasks() {
                 </div>
 
                 {/* Info Catatan tentang Poin */}
-                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[11px] text-blue-700 flex items-start gap-2">
-                  <span className="text-base leading-none">💡</span>
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[11px] text-blue-700 flex items-start gap-2.5">
+                  <FaLightbulb className="text-blue-600 shrink-0 text-sm mt-0.5" />
                   <span>
                     <b>Pemberian Poin (Story Points):</b> Poin untuk task ini akan dinilai dan ditentukan langsung oleh <b>Product Owner (PO) / HR</b> setelah task dibuat.
                   </span>

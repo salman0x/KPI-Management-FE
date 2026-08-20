@@ -7,3 +7,38 @@
   --color-accent: #349DD7;
   --color-accent-light: #E8F4FC;
 }
+
+@media print {
+
+  /* Sembunyikan elemen non-cetak seperti header fixed dan sidebar */
+  header,
+  nav,
+  aside,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Pastikan area cetak memenuhi halaman cetak */
+  .printable-area {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  main {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+}

@@ -12,6 +12,7 @@ import {
   FaCalendarAlt,
   FaStar,
   FaUsers,
+  FaLaptopCode,
 } from "react-icons/fa";
 
 import Header from "../layouts/Header";
@@ -19,6 +20,9 @@ import Sidebar from "../layouts/Sidebar";
 import PageHeader from "../layouts/PageHeader";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
+
+// Nilai Poin Standar Sesuai Catatan Mentor / ClickUp
+const SP_OPTIONS = [1, 2, 3, 4, 5, 8, 12, 16, 18, 20, 28, 241];
 
 const INITIAL_DASHBOARD_TASKS = [
   {
@@ -214,8 +218,8 @@ export default function Dashboard() {
                 className="bg-white rounded-2xl p-4 md:p-5 shadow-xs border border-gray-100 hover:shadow-md transition-all flex flex-wrap md:flex-nowrap items-center justify-between gap-4"
               >
                 <div className="flex items-center gap-3.5 min-w-[240px]">
-                  <div className="w-10 h-10 rounded-2xl bg-accent-light flex items-center justify-center text-accent shrink-0 text-base font-bold">
-                    💻
+                  <div className="w-10 h-10 rounded-2xl bg-accent-light flex items-center justify-center text-accent shrink-0">
+                    <FaLaptopCode size={16} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -329,6 +333,33 @@ export default function Dashboard() {
                   </div>
                 </div>
 
+                {/* Pilihan Story Points Standar */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-gray-700">
+                      Story Points (SP) Standar:
+                    </label>
+                    <span className="text-[11px] font-bold text-accent bg-accent-light px-2 py-0.5 rounded-full">
+                      {editingTask.point} SP Terpilih
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-6 gap-1.5 mb-2">
+                    {SP_OPTIONS.map((sp) => (
+                      <button
+                        key={sp}
+                        type="button"
+                        onClick={() => setEditingTask({ ...editingTask, point: sp })}
+                        className={`py-1.5 rounded-xl text-[11px] font-bold transition-all border cursor-pointer ${editingTask.point === sp
+                            ? "bg-accent text-white border-accent shadow-xs scale-105"
+                            : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                          }`}
+                      >
+                        {sp} SP
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">Status Tugas</label>
@@ -346,25 +377,14 @@ export default function Dashboard() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Story Points (SP)</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Assignee</label>
                     <input
-                      type="number"
-                      min="0"
-                      value={editingTask.point}
-                      onChange={(e) => setEditingTask({ ...editingTask, point: Number(e.target.value) })}
-                      className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-primary-light"
+                      type="text"
+                      value={editingTask.assignee}
+                      onChange={(e) => setEditingTask({ ...editingTask, assignee: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-light"
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Assignee</label>
-                  <input
-                    type="text"
-                    value={editingTask.assignee}
-                    onChange={(e) => setEditingTask({ ...editingTask, assignee: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-gray-200 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-light"
-                  />
                 </div>
 
                 <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
