@@ -1,5 +1,5 @@
 import { FaHome, FaTasks, FaUsers, FaRegCalendarAlt, FaChartBar, FaCog, FaQuestionCircle, FaSignOutAlt } from "react-icons/fa";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
 
 const menuItems = [
@@ -13,6 +13,11 @@ const menuItems = [
 
 export default function Sidebar() {
   const { collapsed } = useSidebar();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    navigate("/login");
+  };
 
   return (
     <div className={`${collapsed ? "w-20" : "w-45"} h-[calc(100vh-4rem)] bg-white border-r border-gray-100 flex flex-col justify-between fixed left-0 top-16 transition-all duration-300`}>
@@ -22,8 +27,7 @@ export default function Sidebar() {
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                isActive ? "bg-primary-light text-primary" : "text-gray-700 hover:bg-gray-50"
+              `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${isActive ? "bg-primary-light text-primary" : "text-gray-700 hover:bg-gray-50"
               } ${collapsed ? "justify-center px-2" : ""}`
             }
             title={collapsed ? item.name : ""}
@@ -40,10 +44,15 @@ export default function Sidebar() {
           {!collapsed && "Help Center"}
         </a>
 
-        <a href="#" className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-primary text-white ${collapsed ? "justify-center px-2" : ""}`}>
-            <FaSignOutAlt className="text-sm" />
+        <button
+          onClick={handleLogout}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-primary text-white hover:opacity-90 transition-opacity cursor-pointer ${collapsed ? "justify-center px-2" : ""
+            }`}
+          title={collapsed ? "Logout" : ""}
+        >
+          <FaSignOutAlt className="text-sm" />
           {!collapsed && "Logout"}
-        </a>
+        </button>
       </div>
     </div>
   );
