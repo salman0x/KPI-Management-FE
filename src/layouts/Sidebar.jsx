@@ -1,6 +1,7 @@
 import { FaHome, FaTasks, FaUsers, FaRegCalendarAlt, FaChartBar, FaSignOutAlt } from "react-icons/fa";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
+import { useAuth } from "../context/AuthContext";
 
 const menuItems = [
   { name: "Dashboard", icon: <FaHome />, path: "/" },
@@ -12,9 +13,11 @@ const menuItems = [
 
 export default function Sidebar() {
   const { collapsed } = useSidebar();
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    logout();
     navigate("/login");
   };
 

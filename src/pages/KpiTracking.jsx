@@ -16,6 +16,7 @@ import Header from "../layouts/Header";
 import Sidebar from "../layouts/Sidebar";
 import PageHeader from "../layouts/PageHeader";
 import { useSidebar } from "../context/SidebarContext";
+import { useAuth } from "../context/AuthContext";
 
 // Daftar 10+ Tab Bulan / Periode
 const MONTH_TABS = [
@@ -157,11 +158,15 @@ const KPI_METRICS = [
 
 export default function KpiTracking() {
   const { collapsed } = useSidebar();
+  const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState("Januari");
   const [selectedEmp, setSelectedEmp] = useState("EMP-001");
   const [exportNotification, setExportNotification] = useState(false);
 
-  const currentEmployee = EMPLOYEES.find((e) => e.id === selectedEmp) || EMPLOYEES[0];
+  const isHR = currentUser?.role === "HR";
+  const currentEmployee = isHR
+    ? EMPLOYEES.find((e) => e.id === selectedEmp) || EMPLOYEES[0]
+    : { id: "EMP-001", name: currentUser?.name || "Sari Wulandari", role: "Frontend Developer" };
 
   // Hitung Skor Rata-rata & Level Dominan
   const totalWeight = KPI_METRICS.reduce((acc, curr) => acc + curr.weight, 0);
@@ -187,20 +192,22 @@ export default function KpiTracking() {
           subtitle="Tabel evaluasi capaian Key Performance Indicator tahun 2026 • PT. JAGA"
         >
           {/* Tombol Export Laporan (Khusus HR) */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handleExport("Excel (.xlsx)")}
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer"
-            >
-              <FaFileExcel /> Export Excel
-            </button>
-            <button
-              onClick={() => handleExport("PDF (.pdf)")}
-              className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer"
-            >
-              <FaFilePdf /> Export PDF
-            </button>
-          </div>
+          {isHR && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleExport("Excel (.xlsx)")}
+                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer"
+              >
+                <FaFileExcel /> Export Excel
+              </button>
+              <button
+                onClick={() => handleExport("PDF (.pdf)")}
+                className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer"
+              >
+                <FaFilePdf /> Export PDF
+              </button>
+            </div>
+          )}
         </PageHeader>
 
         {/* Notifikasi Pop-up Berhasil Export */}
@@ -233,22 +240,28 @@ export default function KpiTracking() {
             </div>
           </div>
 
-          {/* Switcher Karyawan (Fitur HR) */}
-          <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-2xl border border-gray-200">
-            <FaUserTie className="text-gray-400 text-sm ml-1" />
-            <span className="text-xs font-semibold text-gray-600">Pilih Karyawan:</span>
-            <select
-              value={selectedEmp}
-              onChange={(e) => setSelectedEmp(e.target.value)}
-              className="bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-light cursor-pointer shadow-2xs"
-            >
-              {EMPLOYEES.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name} ({emp.role})
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Switcher Karyawan (Khusus HR bisa pilih semua karyawan) */}
+          {isHR ? (
+            <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-2xl border border-gray-200">
+              <FaUserTie className="text-gray-400 text-sm ml-1" />
+              <span className="text-xs font-semibold text-gray-600">Pilih Karyawan (Mode HR):</span>
+              <select
+                value={selectedEmp}
+                onChange={(e) => setSelectedEmp(e.target.value)}
+                className="bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-light cursor-pointer shadow-2xs"
+              >
+                {EMPLOYEES.map((emp) => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.name} ({emp.role})
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div className="text-xs bg-blue-50 text-primary border border-blue-100 px-3.5 py-2 rounded-xl font-medium">
+              Mode Karyawan: Menampilkan Data KPI Pribadi Anda
+            </div>
+          )}
         </div>
 
         {/* Quick KPI Overview Cards */}
