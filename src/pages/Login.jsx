@@ -1,10 +1,18 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { GoogleLogin } from "@react-oauth/google";
 import logo from "../assets/logo.png";
 
 export default function Login() {
   const [role, setRole] = useState("employee");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+
+ const handleGoogleLogin = (credentialResponse) => {
+  console.log("Login Google berhasil:", credentialResponse);
+  navigate("/");
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -12,7 +20,10 @@ export default function Login() {
         <div className="flex justify-center mb-4">
           <img src={logo} alt="Assist.id" className="h-10 w-auto object-contain" />
         </div>
-        <p className="text-gray-500 text-sm text-center mb-6">Welcome back. Please log in to your account.</p>
+
+        <p className="text-gray-500 text-sm text-center mb-6">
+          Welcome back. Please log in to your account.
+        </p>
 
         {/* Role toggle */}
         <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
@@ -35,7 +46,9 @@ export default function Login() {
         </div>
 
         {/* Email */}
-        <label className="text-sm font-medium text-gray-700 mb-1 block">Email Address</label>
+        <label className="text-sm font-medium text-gray-700 mb-1 block">
+          Email Address
+        </label>
         <div className="relative mb-4">
           <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
           <input
@@ -46,7 +59,9 @@ export default function Login() {
         </div>
 
         {/* Password */}
-        <label className="text-sm font-medium text-gray-700 mb-1 block">Password</label>
+        <label className="text-sm font-medium text-gray-700 mb-1 block">
+          Password
+        </label>
         <div className="relative mb-3">
           <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
           <input
@@ -78,6 +93,24 @@ export default function Login() {
         <button className="w-full bg-primary text-white font-semibold py-3 rounded-xl hover:opacity-90 transition-opacity">
           Login to Assist.id
         </button>
+
+        {/* Google Login */}
+        <div className="flex items-center gap-3 my-5">
+          <div className="flex-1 h-px bg-gray-200"></div>
+          <span className="text-xs text-gray-400">OR</span>
+          <div className="flex-1 h-px bg-gray-200"></div>
+        </div>
+
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleLogin}
+            onError={() => console.log("Login Google gagal")}
+            theme="outline"
+            size="large"
+            width="350"
+            text="signin_with"
+          />
+        </div>
 
         <p className="text-center text-sm text-gray-500 mt-4">
           Need help?{" "}
