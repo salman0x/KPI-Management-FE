@@ -29,7 +29,7 @@ const MONTH_TABS = [
 
 // Daftar Pilihan Tahun (Mulai dari 2026 ke Depan)
 const YEARS = [
-  "2026", "2027", "2028", "2029", "2030", 
+  "2026", "2027", "2028", "2029", "2030",
   "2031", "2032", "2033", "2034", "2035", "2036"
 ];
 
@@ -535,11 +535,10 @@ export default function KpiTracking() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-3.5 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                  activeTab === tab
+                className={`px-3.5 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${activeTab === tab
                     ? "bg-primary text-white shadow-xs"
                     : "text-gray-600 hover:bg-gray-100"
-                }`}
+                  }`}
               >
                 {tab}
               </button>
@@ -550,7 +549,7 @@ export default function KpiTracking() {
           <div className="flex items-center gap-2.5 bg-gray-50/90 hover:bg-gray-100/90 border border-gray-200 px-3.5 py-1.5 rounded-2xl shrink-0 transition-all shadow-2xs">
             <FaCalendarAlt className="text-primary text-sm shrink-0" />
             <span className="text-xs font-bold text-gray-700">Tahun:</span>
-            
+
             {/* Tombol Tahun Sebelumnya */}
             <button
               type="button"
@@ -702,15 +701,14 @@ export default function KpiTracking() {
                     {/* Capaian Level Badge */}
                     <td className="p-2.5 text-center">
                       <span
-                        className={`inline-block px-3 py-1 rounded-full font-bold text-xs shadow-2xs transition-all ${
-                          kpi.achievedLevel === 4
+                        className={`inline-block px-3 py-1 rounded-full font-bold text-xs shadow-2xs transition-all ${kpi.achievedLevel === 4
                             ? "bg-green-100 text-green-700 border border-green-300 scale-105"
                             : kpi.achievedLevel === 3
-                            ? "bg-blue-100 text-blue-700 border border-blue-300"
-                            : kpi.achievedLevel === 2
-                            ? "bg-amber-100 text-amber-700 border border-amber-300"
-                            : "bg-rose-100 text-rose-700 border border-rose-300"
-                        }`}
+                              ? "bg-blue-100 text-blue-700 border border-blue-300"
+                              : kpi.achievedLevel === 2
+                                ? "bg-amber-100 text-amber-700 border border-amber-300"
+                                : "bg-rose-100 text-rose-700 border border-rose-300"
+                          }`}
                       >
                         Level {kpi.achievedLevel}
                       </span>
