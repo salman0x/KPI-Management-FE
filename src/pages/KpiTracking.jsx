@@ -19,6 +19,7 @@ import Sidebar from "../layouts/Sidebar";
 import PageHeader from "../layouts/PageHeader";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
+import { kpiService } from "../services/kpiService";
 import * as XLSX from "xlsx";
 
 // Daftar 10+ Tab Bulan / Periode
@@ -1083,7 +1084,17 @@ export default function KpiTracking() {
                     Batal
                   </button>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
+                      try {
+                        await kpiService.saveKpiEvaluations({
+                          empId: currentEmployee.id,
+                          month: activeTab,
+                          year: selectedYear,
+                          inputs: kpiInputs,
+                        });
+                      } catch (err) {
+                        console.error("Gagal simpan KPI:", err);
+                      }
                       setIsInputModalOpen(false);
                       setExportNotification(`Data capaian KPI untuk ${currentEmployee.name} berhasil disimpan dan otomatis masuk ke tabel evaluasi!`);
                       setTimeout(() => setExportNotification(false), 4000);

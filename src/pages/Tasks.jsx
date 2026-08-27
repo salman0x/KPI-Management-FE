@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaPlus,
   FaFilter,
@@ -23,6 +23,7 @@ import Sidebar from "../layouts/Sidebar";
 import PageHeader from "../layouts/PageHeader";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
+import { taskService, FALLBACK_TASKS } from "../services/taskService";
 
 // Nilai Poin Standar Sesuai Catatan Mentor / ClickUp
 const SP_OPTIONS = [1, 2, 3, 4, 5, 8, 12, 16, 18, 20, 28, 241];
@@ -37,74 +38,6 @@ const STATUSES = [
   { id: "Done", label: "Done", color: "bg-green-50 text-green-600 border-green-200", dot: "bg-green-500" },
 ];
 
-const INITIAL_TASKS = [
-  {
-    id: "TSK-101",
-    title: "Implementasi Integrasi Autentikasi Google OAuth",
-    description: "Membuat alur login Google menggunakan client id dan handle redirect token ke dashboard.",
-    category: "Feature",
-    assignee: "Sari",
-    start: "18 Agu 2026",
-    deadline: "22 Agu 2026",
-    sla: "48 Jam",
-    status: "On Progress",
-    point: 28, // Sesuai daftar SP mentor
-    backwardCount: 0,
-  },
-  {
-    id: "TSK-102",
-    title: "Perbaikan Bug Notifikasi Pembayaran dari CH",
-    description: "Tiket kendala CH: Notifikasi invoice gagal terkirim ke WhatsApp user.",
-    category: "Bug Ticket",
-    assignee: "Musa",
-    start: "19 Agu 2026",
-    deadline: "20 Agu 2026",
-    sla: "24 Jam",
-    status: "QA",
-    point: 12,
-    backwardCount: 1,
-  },
-  {
-    id: "TSK-103",
-    title: "Refactor Database Query & Clean Legacy Code",
-    description: "Pembersihan hutang teknis modul rekam medis lama sesuai backlog tech debt.",
-    category: "Tech Debt",
-    assignee: "Sari",
-    start: "15 Agu 2026",
-    deadline: "25 Agu 2026",
-    sla: "72 Jam",
-    status: "Code Review",
-    point: null, // Belum dinilai PO
-    backwardCount: 0,
-  },
-  {
-    id: "TSK-104",
-    title: "Desain dan Implementasi Tab Evaluasi KPI Bulanan",
-    description: "Membuat tabel matriks KPI level 1-4 untuk tim development.",
-    category: "Feature",
-    assignee: "Sari",
-    start: "20 Agu 2026",
-    deadline: "24 Agu 2026",
-    sla: "48 Jam",
-    status: "Ready",
-    point: null,
-    backwardCount: 0,
-  },
-  {
-    id: "TSK-105",
-    title: "Testing Stress Load & Penyesuaian Response Time API",
-    description: "Optimalisasi performa endpoint API saat jam sibuk klinik.",
-    category: "Improvement",
-    assignee: "Musa",
-    start: "10 Agu 2026",
-    deadline: "14 Agu 2026",
-    sla: "48 Jam",
-    status: "Done",
-    point: 20,
-    backwardCount: 0,
-  },
-];
-
 const CATEGORY_BADGES = {
   Feature: { label: "Feature", bg: "bg-blue-50 text-blue-600 border-blue-200", icon: <FaCode size={11} /> },
   "Bug Ticket": { label: "Ticket Bug (CH)", bg: "bg-red-50 text-red-600 border-red-200", icon: <FaBug size={11} /> },
@@ -117,7 +50,7 @@ export default function Tasks() {
   const { currentUser } = useAuth();
   const isHR = currentUser?.role === "HR";
 
-  const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [tasks, setTasks] = useState(FALLBACK_TASKS);
   const [viewMode, setViewMode] = useState("kanban"); // "kanban" | "list"
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -138,22 +71,47 @@ export default function Tasks() {
     status: "Backlog",
   });
 
+  // [API - GET] Ambil semua task
+  useEffect(() => {
+    let isMounted = true;
+    async function loadTasks() {
+      try {
+        const data = await taskService.getTasks();
+        if (isMounted && data) {
+          setTasks(data);
+        }
+      } catch (err) {
+        console.error("Gagal load data tasks:", err);
+      }
+    }
+    loadTasks();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Filter Tasks
   const filteredTasks = tasks.filter((task) => {
     return selectedCategory === "All" || task.category === selectedCategory;
   });
 
-  // Simpan Poin oleh HR / PO
-  const handleSavePoint = (e) => {
+  // [API - PATCH] Simpan Poin oleh HR / PO via taskService
+  const handleSavePoint = async (e) => {
     e.preventDefault();
     if (!selectedTaskForPoint) return;
 
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === selectedTaskForPoint.id ? { ...t, point: Number(inputPoint) } : t
-      )
-    );
-    setSelectedTaskForPoint(null);
+    try {
+      await taskService.updateTaskPoint(selectedTaskForPoint.id, inputPoint);
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === selectedTaskForPoint.id ? { ...t, point: Number(inputPoint) } : t
+        )
+      );
+    } catch (err) {
+      console.error("Gagal menyimpan poin:", err);
+    } finally {
+      setSelectedTaskForPoint(null);
+    }
   };
 
   // Drag and Drop Handlers (Ala ClickUp)
@@ -186,54 +144,60 @@ export default function Tasks() {
     setDragOverColumn(null);
   };
 
-  // Handle Tambah Task Baru oleh Karyawan
-  const handleCreateTask = (e) => {
+  // [API - POST] Handle Tambah Task Baru via taskService
+  const handleCreateTask = async (e) => {
     e.preventDefault();
     if (!newTask.title.trim()) return;
 
-    const created = {
-      ...newTask,
-      id: `TSK-${Math.floor(100 + Math.random() * 900)}`,
-      start: newTask.start || new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
-      deadline: newTask.deadline || "TBD",
-      point: null, // Poin belum diisi karena diisi oleh PO / HR
-      backwardCount: 0,
-    };
-
-    setTasks([created, ...tasks]);
-    setIsModalOpen(false);
-    setNewTask({
-      title: "",
-      description: "",
-      category: "Feature",
-      assignee: "Sari",
-      start: "",
-      deadline: "",
-      sla: "48 Jam",
-      status: "Backlog",
-    });
+    try {
+      const created = await taskService.createTask(newTask);
+      setTasks((prev) => [created, ...prev]);
+      setIsModalOpen(false);
+      setNewTask({
+        title: "",
+        description: "",
+        category: "Feature",
+        assignee: "Sari",
+        start: "",
+        deadline: "",
+        sla: "48 Jam",
+        status: "Backlog",
+      });
+    } catch (err) {
+      console.error("Gagal membuat task baru:", err);
+    }
   };
 
-  // Ubah Status Task
-  const handleStatusChange = (taskId, newStatus) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
-    );
+  // [API - PATCH] Ubah Status Task via taskService
+  const handleStatusChange = async (taskId, newStatus) => {
+    try {
+      await taskService.updateTaskStatus(taskId, newStatus);
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
+      );
+    } catch (err) {
+      console.error("Gagal mengubah status task:", err);
+    }
   };
 
-  // Aksi Khusus QA: Kembalikan ke Dev karena Bug (Task Backward)
-  const handleRejectQA = (taskId) => {
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === taskId
-          ? {
-              ...t,
-              status: "On Progress",
-              backwardCount: (t.backwardCount || 0) + 1,
-            }
-          : t
-      )
-    );
+  // [API - POST] Aksi Khusus QA: Kembalikan ke Dev karena Bug via taskService
+  const handleRejectQA = async (taskId) => {
+    try {
+      await taskService.rejectTaskQA(taskId);
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === taskId
+            ? {
+                ...t,
+                status: "On Progress",
+                backwardCount: (t.backwardCount || 0) + 1,
+              }
+            : t
+        )
+      );
+    } catch (err) {
+      console.error("Gagal reject QA:", err);
+    }
   };
 
   return (
