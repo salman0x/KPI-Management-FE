@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaEye, FaEyeSlash, FaExclamationCircle, FaSpinner, FaUserCheck } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaExclamationCircle, FaSpinner } from "react-icons/fa";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/authService";
@@ -29,17 +29,6 @@ export default function Login() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Demo Login Cepat Karyawan (Jika Google Cloud sedang propagasi / delay)
-  const handleDemoKaryawanLogin = () => {
-    login({
-      name: "Sari Wulandari",
-      role: "Karyawan",
-      email: "sari@assist.id",
-      loginMethod: "google",
-    });
-    navigate("/");
   };
 
   // 2. Login via Form Email & Password (Khusus 2 Akun HR Resmi)
@@ -145,7 +134,7 @@ export default function Login() {
         </div>
 
         {/* Google Login (Untuk Karyawan) */}
-        <div className="flex flex-col items-center gap-2.5">
+        <div className="flex flex-col items-center gap-2">
           <GoogleLogin
             onSuccess={handleGoogleLogin}
             onError={() => setErrorMessage("Login Google gagal. Pastikan koneksi internet aktif.")}
@@ -155,16 +144,9 @@ export default function Login() {
             text="continue_with"
             shape="rectangular"
           />
-
-          {/* Tombol Alternatif Karyawan (Bypass Propagasi Google OAuth) */}
-          <button
-            type="button"
-            onClick={handleDemoKaryawanLogin}
-            className="text-[11.5px] text-primary hover:text-primary-dark font-medium hover:underline flex items-center gap-1.5 mt-1 transition-colors cursor-pointer"
-            title="Klik untuk langsung masuk sebagai Karyawan tanpa menunggu sinkronisasi Google Cloud"
-          >
-            <FaUserCheck size={12} /> Masuk langsung sebagai Karyawan (Sari)
-          </button>
+          <p className="text-[11px] text-gray-400 text-center mt-1">
+            Khusus Karyawan: Masuk otomatis dengan akun Google Assist.id
+          </p>
         </div>
       </div>
     </div>
