@@ -9,18 +9,49 @@ export const authService = {
    * Endpoint: POST /auth/login
    */
   async loginWithEmail(email, password) {
+    const cleanEmail = (email || "").trim().toLowerCase();
+    const cleanPassword = (password || "").trim();
+
     try {
-      const response = await apiClient.post("/auth/login", { email, password });
+      const response = await apiClient.post("/auth/login", {
+        email: cleanEmail,
+        password: cleanPassword,
+      });
+
       if (response?.token) {
         localStorage.setItem("kpi_token", response.token);
       }
       return response.user || response;
     } catch (err) {
-      console.info("[Fallback Mode] Login HR lokal tanpa server BE.");
+      // Jika Backend mengembalikan error spesifik (misal 401 / 403), teruskan pesan error
+      if (err.message && !err.message.includes("Failed to fetch") && !err.message.includes("NetworkError")) {
+        throw err;
+      }
+
+      console.info("[Fallback Mode] Backend /auth/login belum aktif, melakukan validasi akun HR lokal.");
+
+      // Validasi Keamanan FE di Mode Fallback:
+      // Hanya izinkan email yang beridentitas HR resmi atau domain assist.id
+      const isHrEmail =
+        cleanEmail.includes("hr") ||
+        cleanEmail === "admin@assist.id" ||
+        cleanEmail === "hr.admin@assist.id" ||
+        cleanEmail === "hr@assist.id";
+
+      if (!isHrEmail) {
+        throw new Error(
+          "Akses ditolak: Form login ini khusus akun resmi Admin HR (contoh: hr.admin@assist.id). Untuk karyawan silakan gunakan tombol Login with Google."
+        );
+      }
+
+      if (!cleanPassword || cleanPassword.length < 4) {
+        throw new Error("Kata sandi akun HR tidak boleh kosong (minimal 4 karakter).");
+      }
+
       return {
         name: "Admin HR",
         role: "HR",
-        email: email || "hr.admin@assist.id",
+        email: cleanEmail,
         loginMethod: "email",
       };
     }
@@ -69,6 +100,7 @@ export const authService = {
   logout() {
     localStorage.removeItem("kpi_token");
     localStorage.removeItem("kpi_user");
+    localStorage.removeItem("kpi_session_expiry");
   },
 };
 

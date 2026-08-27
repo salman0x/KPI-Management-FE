@@ -1,39 +1,51 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaExclamationCircle, FaSpinner } from "react-icons/fa";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
+import { authService } from "../services/authService";
 import logo from "../assets/logo.png";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
   const { login } = useAuth();
 
   // 1. Login via Google OAuth (Khusus Semua Karyawan)
-  const handleGoogleLogin = (credentialResponse) => {
-    console.log("Login Google Karyawan berhasil:", credentialResponse);
-    login({
-      name: "Sari Wulandari",
-      role: "Karyawan",
-      email: "sari.dev@gmail.com",
-      loginMethod: "google",
-    });
-    navigate("/");
+  const handleGoogleLogin = async (credentialResponse) => {
+    setErrorMessage("");
+    setIsLoading(true);
+    try {
+      const userData = await authService.loginWithGoogle(credentialResponse);
+      login(userData);
+      navigate("/");
+    } catch (err) {
+      setErrorMessage(err.message || "Login Google gagal, silakan coba lagi.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // 2. Login via Form Email & Password (Khusus Akun Database / HR)
-  const handleFormLogin = (e) => {
+  // 2. Login via Form Email & Password (Khusus Akun HR / Admin Resmi)
+  const handleFormLogin = async (e) => {
     e.preventDefault();
-    login({
-      name: "Admin HR",
-      role: "HR",
-      email: email || "hr.admin@assist.id",
-      loginMethod: "email",
-    });
-    navigate("/");
+    setErrorMessage("");
+    setIsLoading(true);
+
+    try {
+      const userData = await authService.loginWithEmail(email, password);
+      login(userData);
+      navigate("/");
+    } catch (err) {
+      setErrorMessage(err.message || "Gagal masuk. Periksa kembali email dan password.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -44,19 +56,27 @@ export default function Login() {
           <img src={logo} alt="Assist.id" className="h-10 w-auto object-contain" />
         </div>
 
+        {/* Alert Error Message jika validasi gagal */}
+        {errorMessage && (
+          <div className="mb-5 p-3.5 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-2.5 text-xs text-red-700 animate-in fade-in slide-in-from-top-1 duration-200">
+            <FaExclamationCircle className="text-red-500 text-sm shrink-0 mt-0.5" />
+            <span className="leading-snug">{errorMessage}</span>
+          </div>
+        )}
+
         {/* Form Login (Khusus Akun Email & Password / HR) */}
         <form onSubmit={handleFormLogin} className="flex flex-col gap-4">
           {/* Email */}
           <div>
             <label className="text-xs font-bold text-gray-800 mb-1.5 block">
-              Email Address
+              Email Akun HR
             </label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@company.com"
+              placeholder="hr.admin@assist.id"
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-light focus:border-primary transition-all"
             />
           </div>
@@ -67,9 +87,9 @@ export default function Login() {
               <label className="text-xs font-bold text-gray-800">
                 Password
               </label>
-              <a href="#" className="text-xs font-semibold text-primary hover:underline">
-                Forgot password?
-              </a>
+              <span className="text-[11px] text-gray-400">
+                Min. 4 karakter
+              </span>
             </div>
             <div className="relative">
               <input
@@ -93,30 +113,40 @@ export default function Login() {
           {/* Tombol Login */}
           <button
             type="submit"
-            className="w-full mt-2 bg-primary hover:bg-primary-dark text-white font-semibold py-3 rounded-xl shadow-xs transition-all active:scale-98 cursor-pointer text-sm"
+            disabled={isLoading}
+            className="w-full mt-2 bg-primary hover:bg-primary-dark text-white font-semibold py-3 rounded-xl shadow-xs transition-all active:scale-98 cursor-pointer text-sm flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            Login
+            {isLoading ? (
+              <>
+                <FaSpinner className="animate-spin" size={14} /> Memverifikasi...
+              </>
+            ) : (
+              "Login sebagai HR"
+            )}
           </button>
         </form>
 
         {/* Divider OR */}
         <div className="flex items-center gap-3 my-5">
           <div className="flex-1 h-px bg-gray-200"></div>
-          <span className="text-xs font-semibold text-gray-400 tracking-wider">OR</span>
+          <span className="text-xs font-semibold text-gray-400 tracking-wider">ATAU</span>
           <div className="flex-1 h-px bg-gray-200"></div>
         </div>
 
         {/* Google Login (Untuk Karyawan) */}
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center gap-2">
           <GoogleLogin
             onSuccess={handleGoogleLogin}
-            onError={() => console.log("Login Google gagal")}
+            onError={() => setErrorMessage("Login Google gagal. Pastikan koneksi internet aktif.")}
             theme="outline"
             size="large"
             width="320"
             text="continue_with"
             shape="rectangular"
           />
+          <p className="text-[11px] text-gray-400 text-center mt-1">
+            Khusus Karyawan: Masuk otomatis dengan akun Google Assist.id
+          </p>
         </div>
       </div>
     </div>
