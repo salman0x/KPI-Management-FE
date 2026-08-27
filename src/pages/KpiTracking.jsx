@@ -178,13 +178,31 @@ export default function KpiTracking() {
     ? EMPLOYEES.find((e) => e.id === selectedEmp) || EMPLOYEES[0]
     : { id: "EMP-001", name: currentUser?.name || "Sari Wulandari", role: "Frontend Developer" };
 
-  // Fungsi Handler Update Input Nilai KPI
+  // Cegah pengetikan tanda minus, plus, atau exponential di input angka
+  const handleKeyDownNonNegative = (e) => {
+    if (e.key === "-" || e.key === "e" || e.key === "E" || e.key === "+") {
+      e.preventDefault();
+    }
+  };
+
+  // Fungsi Handler Update Input Nilai KPI dengan proteksi nilai non-negatif
   const handleInputChange = (kpiNo, field, val) => {
+    if (val === "") {
+      setKpiInputs((prev) => ({
+        ...prev,
+        [kpiNo]: {
+          ...prev[kpiNo],
+          [field]: "",
+        },
+      }));
+      return;
+    }
+    const cleanNum = Math.max(0, Number(val));
     setKpiInputs((prev) => ({
       ...prev,
       [kpiNo]: {
         ...prev[kpiNo],
-        [field]: val,
+        [field]: isNaN(cleanNum) ? 0 : cleanNum,
       },
     }));
   };
@@ -779,7 +797,7 @@ export default function KpiTracking() {
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-gray-900 text-xs">1. On Time Delivery</span>
-                        <span className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Bobot 10%</span>
+                        <span className="text-[10px] bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-bold">Bobot 15%</span>
                       </div>
                       <p className="text-[11px] text-gray-500 mt-1">Target: Naik 90% tepat waktu sesuai sprint</p>
                     </div>
@@ -789,6 +807,7 @@ export default function KpiTracking() {
                         <input
                           type="number"
                           min="0"
+                          onKeyDown={handleKeyDownNonNegative}
                           value={kpiInputs[1]?.onTime ?? 9}
                           onChange={(e) => handleInputChange(1, "onTime", e.target.value)}
                           className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-800 text-xs focus:ring-2 focus:ring-primary-light"
@@ -798,7 +817,8 @@ export default function KpiTracking() {
                         <label className="text-[10px] font-semibold text-gray-600">Total Fitur</label>
                         <input
                           type="number"
-                          min="1"
+                          min="0"
+                          onKeyDown={handleKeyDownNonNegative}
                           value={kpiInputs[1]?.total ?? 10}
                           onChange={(e) => handleInputChange(1, "total", e.target.value)}
                           className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-800 text-xs focus:ring-2 focus:ring-primary-light"
@@ -816,7 +836,7 @@ export default function KpiTracking() {
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-gray-900 text-xs">2. SLA Ticket Bug</span>
-                        <span className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Bobot 10%</span>
+                        <span className="text-[10px] bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-bold">Bobot 15%</span>
                       </div>
                       <p className="text-[11px] text-gray-500 mt-1">Target: 90% ticket diselesaikan tepat SLA</p>
                     </div>
@@ -826,6 +846,7 @@ export default function KpiTracking() {
                         <input
                           type="number"
                           min="0"
+                          onKeyDown={handleKeyDownNonNegative}
                           value={kpiInputs[2]?.onSla ?? 19}
                           onChange={(e) => handleInputChange(2, "onSla", e.target.value)}
                           className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-800 text-xs focus:ring-2 focus:ring-primary-light"
@@ -835,7 +856,8 @@ export default function KpiTracking() {
                         <label className="text-[10px] font-semibold text-gray-600">Total Ticket Masuk</label>
                         <input
                           type="number"
-                          min="1"
+                          min="0"
+                          onKeyDown={handleKeyDownNonNegative}
                           value={kpiInputs[2]?.total ?? 20}
                           onChange={(e) => handleInputChange(2, "total", e.target.value)}
                           className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-800 text-xs focus:ring-2 focus:ring-primary-light"
@@ -853,7 +875,7 @@ export default function KpiTracking() {
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-gray-900 text-xs">3. Production Bug Density</span>
-                        <span className="text-[10px] bg-rose-100 text-rose-800 px-2 py-0.5 rounded font-bold">Bobot 10%</span>
+                        <span className="text-[10px] bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-bold">Bobot 15%</span>
                       </div>
                       <p className="text-[11px] text-gray-500 mt-1">Target: ≤ 5 Bug di environment production</p>
                     </div>
@@ -862,6 +884,7 @@ export default function KpiTracking() {
                       <input
                         type="number"
                         min="0"
+                        onKeyDown={handleKeyDownNonNegative}
                         value={kpiInputs[3]?.bugCount ?? 2}
                         onChange={(e) => handleInputChange(3, "bugCount", e.target.value)}
                         className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-800 text-xs focus:ring-2 focus:ring-primary-light"
@@ -878,7 +901,7 @@ export default function KpiTracking() {
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-gray-900 text-xs">4. Continuous Improvement</span>
-                        <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">Bobot 10%</span>
+                        <span className="text-[10px] bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-bold">Bobot 5%</span>
                       </div>
                       <p className="text-[11px] text-gray-500 mt-1">Target: 3 Item inovasi / optimasi per bulan</p>
                     </div>
@@ -887,6 +910,7 @@ export default function KpiTracking() {
                       <input
                         type="number"
                         min="0"
+                        onKeyDown={handleKeyDownNonNegative}
                         value={kpiInputs[4]?.count ?? 3}
                         onChange={(e) => handleInputChange(4, "count", e.target.value)}
                         className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-800 text-xs focus:ring-2 focus:ring-primary-light"
@@ -903,7 +927,7 @@ export default function KpiTracking() {
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-gray-900 text-xs">5. Tech Debt Completion</span>
-                        <span className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Bobot 10%</span>
+                        <span className="text-[10px] bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-bold">Bobot 5%</span>
                       </div>
                       <p className="text-[11px] text-gray-500 mt-1">Target: 60% pembersihan tech debt terjadwal</p>
                     </div>
@@ -913,6 +937,7 @@ export default function KpiTracking() {
                         <input
                           type="number"
                           min="0"
+                          onKeyDown={handleKeyDownNonNegative}
                           value={kpiInputs[5]?.done ?? 0}
                           onChange={(e) => handleInputChange(5, "done", e.target.value)}
                           className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-800 text-xs focus:ring-2 focus:ring-primary-light"
@@ -923,6 +948,7 @@ export default function KpiTracking() {
                         <input
                           type="number"
                           min="0"
+                          onKeyDown={handleKeyDownNonNegative}
                           value={kpiInputs[5]?.total ?? 0}
                           onChange={(e) => handleInputChange(5, "total", e.target.value)}
                           className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-800 text-xs focus:ring-2 focus:ring-primary-light"
@@ -940,7 +966,7 @@ export default function KpiTracking() {
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-gray-900 text-xs">6. Task Completion Rate</span>
-                        <span className="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold">Bobot 15%</span>
+                        <span className="text-[10px] bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-bold">Bobot 15%</span>
                       </div>
                       <p className="text-[11px] text-gray-500 mt-1">Target: &lt; 48 Jam rata-rata pengerjaan task</p>
                     </div>
@@ -949,6 +975,7 @@ export default function KpiTracking() {
                       <input
                         type="number"
                         min="0"
+                        onKeyDown={handleKeyDownNonNegative}
                         value={kpiInputs[6]?.hours ?? 36}
                         onChange={(e) => handleInputChange(6, "hours", e.target.value)}
                         className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-800 text-xs focus:ring-2 focus:ring-primary-light"
@@ -965,7 +992,7 @@ export default function KpiTracking() {
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-gray-900 text-xs">7. Task Backward Rate</span>
-                        <span className="text-[10px] bg-rose-100 text-rose-800 px-2 py-0.5 rounded font-bold">Bobot 20%</span>
+                        <span className="text-[10px] bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-bold">Bobot 15%</span>
                       </div>
                       <p className="text-[11px] text-gray-500 mt-1">Target: &lt; 20% task yang mental / ditolak QA</p>
                     </div>
@@ -975,6 +1002,7 @@ export default function KpiTracking() {
                         <input
                           type="number"
                           min="0"
+                          onKeyDown={handleKeyDownNonNegative}
                           value={kpiInputs[7]?.rejectCount ?? 2}
                           onChange={(e) => handleInputChange(7, "rejectCount", e.target.value)}
                           className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-800 text-xs focus:ring-2 focus:ring-primary-light"
@@ -984,7 +1012,8 @@ export default function KpiTracking() {
                         <label className="text-[10px] font-semibold text-gray-600">Total Task Masuk QA</label>
                         <input
                           type="number"
-                          min="1"
+                          min="0"
+                          onKeyDown={handleKeyDownNonNegative}
                           value={kpiInputs[7]?.totalTasks ?? 15}
                           onChange={(e) => handleInputChange(7, "totalTasks", e.target.value)}
                           className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-800 text-xs focus:ring-2 focus:ring-primary-light"
@@ -1002,7 +1031,7 @@ export default function KpiTracking() {
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-gray-900 text-xs">8. Sprint Point (SP)</span>
-                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">Bobot 15%</span>
+                        <span className="text-[10px] bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-bold">Bobot 15%</span>
                       </div>
                       <p className="text-[11px] text-gray-500 mt-1">Target: 88 SP tercapai per bulan</p>
                     </div>
@@ -1012,6 +1041,7 @@ export default function KpiTracking() {
                         <input
                           type="number"
                           min="0"
+                          onKeyDown={handleKeyDownNonNegative}
                           value={kpiInputs[8]?.spEarned ?? 98}
                           onChange={(e) => handleInputChange(8, "spEarned", e.target.value)}
                           className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-800 text-xs focus:ring-2 focus:ring-primary-light"
@@ -1021,7 +1051,8 @@ export default function KpiTracking() {
                         <label className="text-[10px] font-semibold text-gray-600">Target SP Bulanan</label>
                         <input
                           type="number"
-                          min="1"
+                          min="0"
+                          onKeyDown={handleKeyDownNonNegative}
                           value={kpiInputs[8]?.spTarget ?? 88}
                           onChange={(e) => handleInputChange(8, "spTarget", e.target.value)}
                           className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-800 text-xs focus:ring-2 focus:ring-primary-light"
