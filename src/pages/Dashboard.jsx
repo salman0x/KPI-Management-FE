@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaClipboardList,
   FaFolderOpen,
@@ -13,6 +13,7 @@ import {
   FaStar,
   FaUsers,
   FaLaptopCode,
+  FaSpinner,
 } from "react-icons/fa";
 
 import Header from "../layouts/Header";
@@ -20,48 +21,10 @@ import Sidebar from "../layouts/Sidebar";
 import PageHeader from "../layouts/PageHeader";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
+import { dashboardService, FALLBACK_DASHBOARD_TASKS } from "../services/dashboardService";
 
 // Nilai Poin Standar Sesuai Catatan Mentor / ClickUp
 const SP_OPTIONS = [1, 2, 3, 4, 5, 8, 12, 16, 18, 20, 28, 241];
-
-const INITIAL_DASHBOARD_TASKS = [
-  {
-    id: "TSK-001",
-    title: "Implementasi Integrasi Autentikasi Google OAuth",
-    point: 28,
-    start: "2026-08-06",
-    deadline: "2026-08-10",
-    status: "On Progress",
-    assignee: "Sari Wulandari",
-  },
-  {
-    id: "TSK-002",
-    title: "UI/UX Redesign Form Evaluasi KPI & Modal Penilaian",
-    point: 20,
-    start: "2026-08-06",
-    deadline: "2026-08-10",
-    status: "Done",
-    assignee: "Mitha Amalia",
-  },
-  {
-    id: "TSK-003",
-    title: "Testing Stress Load & Penyesuaian Response Time API",
-    point: 16,
-    start: "2026-08-06",
-    deadline: "2026-08-10",
-    status: "Code Review",
-    assignee: "Musa Al-Kindi",
-  },
-  {
-    id: "TSK-004",
-    title: "QA Ticket Bug Fixes & Retesting Modul Rekam Medis",
-    point: 28,
-    start: "2026-08-08",
-    deadline: "2026-08-12",
-    status: "QA",
-    assignee: "Dimas Pratama",
-  },
-];
 
 const STATUS_CONFIG = {
   Backlog: { bg: "bg-gray-100 text-gray-700 border-gray-200" },
@@ -78,11 +41,39 @@ export default function Dashboard() {
   const isHR = currentUser?.role === "HR";
   const userName = currentUser?.name || (isHR ? "Admin HR" : "Sari");
 
-  const [taskList, setTaskList] = useState(INITIAL_DASHBOARD_TASKS);
+  const [taskList, setTaskList] = useState(FALLBACK_DASHBOARD_TASKS);
+  const [isLoading, setIsLoading] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [startDate, setStartDate] = useState("2026-08-01");
   const [endDate, setEndDate] = useState("2026-08-31");
+
+  // [API 1 - GET] Fetch data dashboard saat halaman dibuka atau filter tanggal berubah
+  useEffect(() => {
+    let isMounted = true;
+    async function loadDashboard() {
+      setIsLoading(true);
+      try {
+        const tasks = await dashboardService.getDashboardTasks({
+          startDate,
+          endDate,
+          isHR,
+          userName,
+        });
+        if (isMounted && tasks) {
+          setTaskList(tasks);
+        }
+      } catch (err) {
+        console.error("Gagal load data dashboard:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    loadDashboard();
+    return () => {
+      isMounted = false;
+    };
+  }, [startDate, endDate, isHR, userName]);
 
   // Filter task: Karyawan hanya melihat task pribadinya, HR melihat semua task
   const displayedTasks = isHR
@@ -107,21 +98,33 @@ export default function Dashboard() {
     { title: "Done", value: doneCount, sub: "Tasks", icon: <FaCheck />, bg: "bg-green-50", color: "text-green-500" },
   ];
 
-  // Handle Hapus Task
-  const handleDeleteTask = (id) => {
-    setTaskList((prev) => prev.filter((t) => t.id !== id));
-    setDeleteConfirmId(null);
+  // [API 2 - DELETE] Handle Hapus Task via dashboardService
+  const handleDeleteTask = async (id) => {
+    try {
+      await dashboardService.deleteDashboardTask(id);
+      setTaskList((prev) => prev.filter((t) => t.id !== id));
+    } catch (err) {
+      console.error("Gagal menghapus task:", err);
+    } finally {
+      setDeleteConfirmId(null);
+    }
   };
 
-  // Handle Simpan Perubahan Edit Task
-  const handleSaveEdit = (e) => {
+  // [API 2 - PUT] Handle Simpan Perubahan Edit Task via dashboardService
+  const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!editingTask) return;
 
-    setTaskList((prev) =>
-      prev.map((t) => (t.id === editingTask.id ? { ...editingTask } : t))
-    );
-    setEditingTask(null);
+    try {
+      await dashboardService.updateDashboardTask(editingTask.id, editingTask);
+      setTaskList((prev) =>
+        prev.map((t) => (t.id === editingTask.id ? { ...editingTask } : t))
+      );
+    } catch (err) {
+      console.error("Gagal menyimpan task:", err);
+    } finally {
+      setEditingTask(null);
+    }
   };
 
   return (
@@ -204,7 +207,14 @@ export default function Dashboard() {
             <h3 className="font-bold text-gray-800 text-base">
               {isHR ? "Daftar Task Seluruh Tim" : "Riwayat Tugas & Progres Saya"}
             </h3>
-            <span className="text-xs text-gray-400">Total: {displayedTasks.length} Tugas</span>
+            <div className="flex items-center gap-2">
+              {isLoading && (
+                <span className="flex items-center gap-1.5 text-xs text-primary font-medium animate-pulse">
+                  <FaSpinner className="animate-spin" size={11} /> Sinkronisasi API...
+                </span>
+              )}
+              <span className="text-xs text-gray-400">Total: {displayedTasks.length} Tugas</span>
+            </div>
           </div>
 
           {displayedTasks.length === 0 ? (
