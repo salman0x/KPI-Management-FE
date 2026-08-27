@@ -1,24 +1,93 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
 
-import Dashboard from './pages/Dashboard'
-import Login from './pages/Login'
-import Tasks from './pages/Tasks'
-import Employees from './pages/Employees'
-import Calendar from './pages/Calendar'
-import KpiTracking from './pages/KpiTracking'
+import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import Tasks from "./pages/Tasks";
+import Employees from "./pages/Employees";
+import Calendar from "./pages/Calendar";
+import KpiTracking from "./pages/KpiTracking";
+
+/**
+ * Komponen Pembungkus Route Terlindungi (Protected Route)
+ * Jika sesi kedaluwarsa (> 24 jam) atau belum login, otomatis redirect ke /login
+ */
+function ProtectedRoute({ children }) {
+  const { currentUser } = useAuth();
+
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+/**
+ * Route Publik untuk Login
+ * Jika sudah login dan sesi masih aktif (< 24 jam), langsung arahkan ke Dashboard
+ */
+function PublicLoginRoute() {
+  const { currentUser } = useAuth();
+
+  if (currentUser) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Login />;
+}
 
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/" element={<Dashboard />} />
-      <Route path="/tasks" element={<Tasks />} />
-      <Route path="/employees" element={<Employees />} />
-      <Route path="/calendar" element={<Calendar />} />
-      <Route path="/kpi" element={<KpiTracking />} />
+      {/* Route Login */}
+      <Route path="/login" element={<PublicLoginRoute />} />
+
+      {/* Route Terlindungi dengan Proteksi Sesi 24 Jam */}
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks"
+        element={
+          <ProtectedRoute>
+            <Tasks />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employees"
+        element={
+          <ProtectedRoute>
+            <Employees />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/calendar"
+        element={
+          <ProtectedRoute>
+            <Calendar />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/kpi"
+        element={
+          <ProtectedRoute>
+            <KpiTracking />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Fallback URL tidak dikenal */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-  )
+  );
 }
 
-export default App
+export default App;
