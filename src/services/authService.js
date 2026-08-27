@@ -56,7 +56,7 @@ export const authService = {
 
       if (!hrAccount) {
         throw new Error(
-          "Email tidak terdaftar sebagai akun HR resmi. Gunakan hr.admin@assist.id atau hr.people@assist.id."
+          "Email tidak terdaftar sebagai akun resmi Admin HR."
         );
       }
 
