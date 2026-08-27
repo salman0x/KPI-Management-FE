@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaChevronLeft,
   FaChevronRight,
@@ -9,86 +9,13 @@ import {
   FaCheckCircle,
   FaFilter,
   FaPlus,
+  FaSpinner,
 } from "react-icons/fa";
 
 import Header from "../layouts/Header";
 import Sidebar from "../layouts/Sidebar";
 import { useSidebar } from "../context/SidebarContext";
-
-const INITIAL_EVENTS = [
-  {
-    id: "EVT-01",
-    title: "Q3 Report Final",
-    day: 4,
-    month: 7,
-    year: 2026,
-    category: "Report",
-    team: "Engineering",
-    assignee: "Sari",
-    status: "Done",
-    color: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100",
-  },
-  {
-    id: "EVT-02",
-    title: "Design Review",
-    day: 9,
-    month: 7,
-    year: 2026,
-    category: "Design",
-    team: "UI/UX",
-    assignee: "Mitha",
-    status: "Done",
-    color: "bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100",
-  },
-  {
-    id: "EVT-03",
-    title: "API Integration",
-    day: 11,
-    month: 7,
-    year: 2026,
-    category: "Feature",
-    team: "Engineering",
-    assignee: "Musa",
-    status: "On Progress",
-    color: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100",
-  },
-  {
-    id: "EVT-04",
-    title: "Code Audit & Review",
-    day: 11,
-    month: 7,
-    year: 2026,
-    category: "Tech Debt",
-    team: "Engineering",
-    assignee: "Sari",
-    status: "Code Review",
-    color: "bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100",
-  },
-  {
-    id: "EVT-05",
-    title: "QA Bug Verification",
-    day: 18,
-    month: 7,
-    year: 2026,
-    category: "QA",
-    team: "QA",
-    assignee: "Dimas",
-    status: "QA",
-    color: "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100",
-  },
-  {
-    id: "EVT-06",
-    title: "Release Production v2.4",
-    day: 25,
-    month: 7,
-    year: 2026,
-    category: "Feature",
-    team: "Engineering",
-    assignee: "Reza",
-    status: "Ready",
-    color: "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100",
-  },
-];
+import { calendarService, FALLBACK_EVENTS } from "../services/calendarService";
 
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const MONTH_NAMES = [
@@ -98,15 +25,44 @@ const MONTH_NAMES = [
 
 export default function CalendarPage() {
   const { collapsed } = useSidebar();
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 7, 11));
+  const realToday = new Date();
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState("Month");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
   const [teamFilter, setTeamFilter] = useState("All Teams");
-  const [events, setEvents] = useState(INITIAL_EVENTS);
+  const [events, setEvents] = useState(FALLBACK_EVENTS);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
+
+  // [API - GET] Ambil event kalender saat bulan, tahun, atau filter berubah
+  useEffect(() => {
+    let isMounted = true;
+    async function loadEvents() {
+      setIsLoading(true);
+      try {
+        const data = await calendarService.getCalendarEvents({
+          month: currentMonth,
+          year: currentYear,
+          status: statusFilter,
+          team: teamFilter,
+        });
+        if (isMounted && data) {
+          setEvents(data);
+        }
+      } catch (err) {
+        console.error("Gagal load calendar events:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    loadEvents();
+    return () => {
+      isMounted = false;
+    };
+  }, [currentMonth, currentYear, statusFilter, teamFilter]);
 
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
@@ -114,6 +70,10 @@ export default function CalendarPage() {
 
   const handleNextMonth = () => {
     setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+  };
+
+  const handleToday = () => {
+    setCurrentDate(new Date());
   };
 
   const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
@@ -227,23 +187,32 @@ export default function CalendarPage() {
               </select>
             </div>
 
-            {/* Navigation Arrows < > */}
-            <div className="flex items-center bg-white border border-gray-200 rounded-xl p-0.5 shadow-2xs">
+            {/* Navigation Arrows < > & Tombol Hari Ini */}
+            <div className="flex items-center gap-1.5">
               <button
-                onClick={handlePrevMonth}
-                className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
-                title="Bulan Sebelumnya"
+                onClick={handleToday}
+                className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 text-xs font-semibold px-2.5 py-1.5 rounded-xl transition-all cursor-pointer shadow-2xs"
+                title="Kembali ke Hari Ini"
               >
-                <FaChevronLeft size={10} />
+                Hari Ini
               </button>
-              <div className="h-3.5 w-[1px] bg-gray-200"></div>
-              <button
-                onClick={handleNextMonth}
-                className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
-                title="Bulan Berikutnya"
-              >
-                <FaChevronRight size={10} />
-              </button>
+              <div className="flex items-center bg-white border border-gray-200 rounded-xl p-0.5 shadow-2xs">
+                <button
+                  onClick={handlePrevMonth}
+                  className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                  title="Bulan Sebelumnya"
+                >
+                  <FaChevronLeft size={10} />
+                </button>
+                <div className="h-3.5 w-[1px] bg-gray-200"></div>
+                <button
+                  onClick={handleNextMonth}
+                  className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                  title="Bulan Berikutnya"
+                >
+                  <FaChevronRight size={10} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -266,7 +235,12 @@ export default function CalendarPage() {
               }}
             >
               {calendarCells.map((cell, idx) => {
-                const isSelectedToday = cell.isCurrentMonth && cell.dayNumber === 11;
+                const isSelectedToday =
+                  cell.isCurrentMonth &&
+                  cell.dayNumber === realToday.getDate() &&
+                  cell.month === realToday.getMonth() &&
+                  cell.year === realToday.getFullYear();
+
                 const cellEvents = filteredEvents.filter(
                   (e) =>
                     e.day === cell.dayNumber &&
@@ -287,7 +261,7 @@ export default function CalendarPage() {
                   >
                     {/* Baris Atas: Nomor Tanggal & Indikator Titik */}
                     <div className="flex items-center justify-between shrink-0">
-                      {cell.isCurrentMonth && cell.dayNumber === 3 ? (
+                      {isSelectedToday ? (
                         <span className="w-1.5 h-1.5 rounded-full bg-accent ml-0.5"></span>
                       ) : (
                         <span></span>
@@ -298,9 +272,7 @@ export default function CalendarPage() {
                           isSelectedToday
                             ? "w-5 h-5 rounded-full bg-accent text-white font-bold text-[10px]"
                             : cell.isCurrentMonth
-                            ? cell.dayNumber === 10
-                              ? "text-accent font-bold"
-                              : "text-gray-700"
+                            ? "text-gray-700 font-semibold"
                             : "text-gray-300"
                         }`}
                       >
@@ -370,27 +342,77 @@ export default function CalendarPage() {
           </div>
         )}
 
-        {/* View Mode: WEEK VIEW */}
-        {viewType === "Week" && (
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 text-center text-gray-500 text-xs">
-            <p className="font-semibold text-sm text-gray-800 mb-1">Tampilan Mingguan (Week View)</p>
-            <p className="text-gray-400">Menampilkan deadline sprint untuk minggu berjalan (7 Hari).</p>
-            <div className="grid grid-cols-7 gap-3 mt-6">
-              {DAYS_OF_WEEK.map((day, i) => (
-                <div key={day} className="bg-gray-50 p-3 rounded-2xl border border-gray-100 min-h-[180px] text-left">
-                  <span className="font-bold text-gray-700 block text-xs">{day}</span>
-                  <span className="text-[11px] text-gray-400">{8 + i} Aug</span>
-                  {/* Event sample */}
-                  {i === 3 && (
-                    <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded-xl text-[10px] text-amber-700 font-semibold">
-                      API Integration
+        {/* View Mode: WEEK VIEW (Real-time Dinamis) */}
+        {viewType === "Week" && (() => {
+          const startOfWeek = new Date(currentYear, currentMonth, currentDate.getDate() - currentDate.getDay());
+          const weekDays = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i);
+            return {
+              dayName: DAYS_OF_WEEK[i],
+              dayNumber: d.getDate(),
+              monthName: MONTH_NAMES[d.getMonth()].slice(0, 3),
+              month: d.getMonth(),
+              year: d.getFullYear(),
+              isToday:
+                d.getDate() === realToday.getDate() &&
+                d.getMonth() === realToday.getMonth() &&
+                d.getFullYear() === realToday.getFullYear(),
+            };
+          });
+
+          return (
+            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 text-center text-gray-500 text-xs">
+              <p className="font-semibold text-sm text-gray-800 mb-1">Tampilan Mingguan (Week View)</p>
+              <p className="text-gray-400">Menampilkan jadwal sprint untuk minggu berjalan.</p>
+              <div className="grid grid-cols-7 gap-3 mt-6">
+                {weekDays.map((wd) => {
+                  const dayEvents = filteredEvents.filter(
+                    (e) => e.day === wd.dayNumber && e.month === wd.month && e.year === wd.year
+                  );
+
+                  return (
+                    <div
+                      key={wd.dayName}
+                      className={`p-3 rounded-2xl border min-h-[180px] text-left flex flex-col justify-between ${
+                        wd.isToday
+                          ? "bg-accent/5 border-accent ring-1 ring-accent"
+                          : "bg-gray-50 border-gray-100"
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className={`font-bold block text-xs ${wd.isToday ? "text-accent" : "text-gray-700"}`}>
+                            {wd.dayName}
+                          </span>
+                          {wd.isToday && (
+                            <span className="text-[9px] bg-accent text-white font-bold px-1.5 py-0.5 rounded-full">
+                              Hari Ini
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-gray-400">
+                          {wd.dayNumber} {wd.monthName}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5 mt-2">
+                        {dayEvents.map((evt) => (
+                          <button
+                            key={evt.id}
+                            onClick={() => setSelectedEvent(evt)}
+                            className={`p-1.5 rounded-xl text-[10px] font-semibold truncate border cursor-pointer ${evt.color}`}
+                          >
+                            {evt.title}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* MODAL: Detail Event / Deadline */}
         {selectedEvent && (

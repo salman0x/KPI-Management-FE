@@ -89,7 +89,15 @@ export const calendarService = {
       return response.data || response;
     } catch (err) {
       console.info("[Fallback Mode] Backend /calendar/events belum aktif, menggunakan fallback data.");
-      return FALLBACK_EVENTS;
+      const currentYear = params.year !== undefined ? Number(params.year) : new Date().getFullYear();
+      const currentMonth = params.month !== undefined ? Number(params.month) : new Date().getMonth();
+
+      // Sesuaikan bulan & tahun data contoh agar selalu tampil di bulan yang sedang aktif
+      return FALLBACK_EVENTS.map((evt) => ({
+        ...evt,
+        month: currentMonth,
+        year: currentYear,
+      }));
     }
   },
 
