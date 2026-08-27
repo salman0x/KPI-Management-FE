@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaExclamationCircle, FaSpinner } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaExclamationCircle, FaSpinner } from "react-icons/fa";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/authService";
@@ -31,7 +31,7 @@ export default function Login() {
     }
   };
 
-  // 2. Login via Form Email & Password (Khusus Akun HR / Admin Resmi)
+  // 2. Login via Form Email & Password (Khusus 2 Akun HR Resmi)
   const handleFormLogin = async (e) => {
     e.preventDefault();
     setErrorMessage("");
@@ -42,7 +42,7 @@ export default function Login() {
       login(userData);
       navigate("/");
     } catch (err) {
-      setErrorMessage(err.message || "Gagal masuk. Periksa kembali email dan password.");
+      setErrorMessage(err.message || "Gagal masuk. Periksa kembali email dan password akun HR.");
     } finally {
       setIsLoading(false);
     }
@@ -87,9 +87,9 @@ export default function Login() {
               <label className="text-xs font-bold text-gray-800">
                 Password
               </label>
-              <span className="text-[11px] text-gray-400">
-                Min. 4 karakter
-              </span>
+              <a href="#" className="text-xs font-semibold text-primary hover:underline">
+                Forgot password?
+              </a>
             </div>
             <div className="relative">
               <input
@@ -114,7 +114,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full mt-2 bg-primary hover:bg-primary-dark text-white font-semibold py-3 rounded-xl shadow-xs transition-all active:scale-98 cursor-pointer text-sm flex items-center justify-center gap-2 disabled:opacity-60"
+            className="w-full mt-1 bg-primary hover:bg-primary-dark text-white font-semibold py-3 rounded-xl shadow-xs transition-all active:scale-98 cursor-pointer text-sm flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {isLoading ? (
               <>

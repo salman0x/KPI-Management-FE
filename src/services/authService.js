@@ -1,11 +1,30 @@
 import apiClient from "./apiClient";
 
 /**
+ * DAFTAR 2 AKUN HR RESMI YANG TELAH DITETAPKAN
+ * (Daftar ini juga digunakan sebagai acuan spesifikasi untuk teman Backend)
+ */
+export const OFFICIAL_HR_ACCOUNTS = [
+  {
+    email: "hr.admin@assist.id",
+    password: "adminhr123",
+    name: "Admin HR",
+    role: "HR",
+  },
+  {
+    email: "hr.people@assist.id",
+    password: "hrpeople123",
+    name: "People Operations HR",
+    role: "HR",
+  },
+];
+
+/**
  * API SERVICE: AUTENTIKASI (Login HR Email & Login Karyawan Google)
  */
 export const authService = {
   /**
-   * [POST] Login via Email & Password (Khusus Admin / HR)
+   * [POST] Login via Email & Password (Khusus 2 Akun HR Resmi)
    * Endpoint: POST /auth/login
    */
   async loginWithEmail(email, password) {
@@ -23,35 +42,34 @@ export const authService = {
       }
       return response.user || response;
     } catch (err) {
-      // Jika Backend mengembalikan error spesifik (misal 401 / 403), teruskan pesan error
+      // Jika Backend mengembalikan error respons khusus (misal 401 Unauthorized), teruskan pesan error
       if (err.message && !err.message.includes("Failed to fetch") && !err.message.includes("NetworkError")) {
         throw err;
       }
 
-      console.info("[Fallback Mode] Backend /auth/login belum aktif, melakukan validasi akun HR lokal.");
+      console.info("[Fallback Mode] Backend /auth/login belum aktif, memvalidasi 2 akun HR resmi lokal.");
 
-      // Validasi Keamanan FE di Mode Fallback:
-      // Hanya izinkan email yang beridentitas HR resmi atau domain assist.id
-      const isHrEmail =
-        cleanEmail.includes("hr") ||
-        cleanEmail === "admin@assist.id" ||
-        cleanEmail === "hr.admin@assist.id" ||
-        cleanEmail === "hr@assist.id";
+      // 1. Cari apakah email terdaftar di daftar 2 akun HR
+      const hrAccount = OFFICIAL_HR_ACCOUNTS.find(
+        (acc) => acc.email.toLowerCase() === cleanEmail
+      );
 
-      if (!isHrEmail) {
+      if (!hrAccount) {
         throw new Error(
-          "Akses ditolak: Form login ini khusus akun resmi Admin HR (contoh: hr.admin@assist.id). Untuk karyawan silakan gunakan tombol Login with Google."
+          "Email tidak terdaftar sebagai akun HR resmi. Gunakan hr.admin@assist.id atau hr.people@assist.id."
         );
       }
 
-      if (!cleanPassword || cleanPassword.length < 4) {
-        throw new Error("Kata sandi akun HR tidak boleh kosong (minimal 4 karakter).");
+      // 2. Periksa apakah password cocok
+      if (hrAccount.password !== cleanPassword) {
+        throw new Error("Kata sandi yang Anda masukkan salah. Silakan coba lagi.");
       }
 
+      // 3. Kredensial valid -> kembalikan profil user HR
       return {
-        name: "Admin HR",
+        name: hrAccount.name,
         role: "HR",
-        email: cleanEmail,
+        email: hrAccount.email,
         loginMethod: "email",
       };
     }
