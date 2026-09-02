@@ -89,12 +89,12 @@ export const FALLBACK_EMPLOYEES = [
 ];
 
 /**
- * API SERVICE: EMPLOYEES (Role Karyawan & HR)
+ * API SERVICE: 3. EMPLOYEES (Karyawan)
  */
 export const employeeService = {
   /**
    * [GET] Ambil Semua Data Karyawan
-   * Endpoint: GET /employees?role=...&department=...
+   * Endpoint: GET /employees
    */
   async getEmployees(params = {}) {
     try {
@@ -103,20 +103,6 @@ export const employeeService = {
     } catch (err) {
       console.info("[Fallback Mode] Backend /employees belum aktif, menggunakan fallback data.");
       return FALLBACK_EMPLOYEES;
-    }
-  },
-
-  /**
-   * [GET] Ambil Detail 1 Karyawan beserta Metrik KPI
-   * Endpoint: GET /employees/:id
-   */
-  async getEmployeeById(id) {
-    try {
-      const response = await apiClient.get(`/employees/${id}`);
-      return response.data || response;
-    } catch (err) {
-      console.info(`[Fallback Mode] Ambil detail employee ${id} lokal.`);
-      return FALLBACK_EMPLOYEES.find((e) => e.id === id) || null;
     }
   },
 
@@ -132,7 +118,7 @@ export const employeeService = {
       console.info("[Fallback Mode] Simpan karyawan baru lokal.");
       return {
         id: `EMP-${Date.now().toString().slice(-3)}`,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${employeeData.name}`,
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(employeeData.name || "User")}`,
         joinDate: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
         status: "Active",
         stats: {
@@ -144,6 +130,20 @@ export const employeeService = {
         },
         ...employeeData,
       };
+    }
+  },
+
+  /**
+   * [GET] Ambil Detail 1 Karyawan
+   * Endpoint: GET /employees/:id
+   */
+  async getEmployeeById(id) {
+    try {
+      const response = await apiClient.get(`/employees/${id}`);
+      return response.data || response;
+    } catch (err) {
+      console.info(`[Fallback Mode] Ambil detail employee ${id} lokal.`);
+      return FALLBACK_EMPLOYEES.find((e) => e.id === id) || null;
     }
   },
 

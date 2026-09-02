@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaEye, FaEyeSlash, FaExclamationCircle, FaSpinner } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaExclamationCircle, FaSpinner, FaUserCheck } from "react-icons/fa";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/authService";
@@ -29,6 +29,17 @@ export default function Login() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Demo Login Cepat Karyawan (Jika Google Cloud sedang propagasi / delay)
+  const handleDemoKaryawanLogin = () => {
+    login({
+      name: "Sari Wulandari",
+      role: "Karyawan",
+      email: "sari@assist.id",
+      loginMethod: "google",
+    });
+    navigate("/");
   };
 
   // 2. Login via Form Email & Password (Khusus 2 Akun HR Resmi)

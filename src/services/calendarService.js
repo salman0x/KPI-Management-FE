@@ -76,71 +76,112 @@ export const FALLBACK_EVENTS = [
 ];
 
 /**
- * API SERVICE: CALENDAR (Event, Deadline Sprint, Tim)
+ * API SERVICE: 5. CALENDAR (Jadwal / Event)
  */
 export const calendarService = {
   /**
-   * [GET] Ambil Semua Event & Deadline Kalender
-   * Endpoint: GET /calendar/events?month=...&year=...&status=...&team=...
+   * [GET] Ambil Semua Jadwal/Event (Endpoint: /calendar atau /calendar/events)
+   * Endpoint: GET /calendar
    */
   async getCalendarEvents(params = {}) {
     try {
-      const response = await apiClient.get("/calendar/events", params);
+      // Coba endpoint utama /calendar
+      const response = await apiClient.get("/calendar", params);
       return response.data || response;
     } catch (err) {
-      console.info("[Fallback Mode] Backend /calendar/events belum aktif, menggunakan fallback data.");
-      const currentYear = params.year !== undefined ? Number(params.year) : new Date().getFullYear();
-      const currentMonth = params.month !== undefined ? Number(params.month) : new Date().getMonth();
+      try {
+        // Fallback coba ke endpoint alias /calendar/events
+        const fallbackResponse = await apiClient.get("/calendar/events", params);
+        return fallbackResponse.data || fallbackResponse;
+      } catch {
+        console.info("[Fallback Mode] Backend /calendar offline, menggunakan data fallback.");
+        const currentYear = params.year !== undefined ? Number(params.year) : new Date().getFullYear();
+        const currentMonth = params.month !== undefined ? Number(params.month) : new Date().getMonth();
 
-      // Sesuaikan bulan & tahun data contoh agar selalu tampil di bulan yang sedang aktif
-      return FALLBACK_EVENTS.map((evt) => ({
-        ...evt,
-        month: currentMonth,
-        year: currentYear,
-      }));
+        return FALLBACK_EVENTS.map((evt) => ({
+          ...evt,
+          month: currentMonth,
+          year: currentYear,
+        }));
+      }
     }
   },
 
+  // Alias
+  async getEvents(params = {}) {
+    return this.getCalendarEvents(params);
+  },
+
   /**
-   * [POST] Buat Event / Deadline Baru
-   * Endpoint: POST /calendar/events
+   * [POST] Buat Jadwal Baru
+   * Endpoint: POST /calendar
    */
   async createCalendarEvent(eventData) {
     try {
-      const response = await apiClient.post("/calendar/events", eventData);
+      const response = await apiClient.post("/calendar", eventData);
       return response.data || response;
     } catch (err) {
-      return {
-        id: `EVT-${Date.now().toString().slice(-3)}`,
-        ...eventData,
-      };
+      try {
+        const fallbackResponse = await apiClient.post("/calendar/events", eventData);
+        return fallbackResponse.data || fallbackResponse;
+      } catch {
+        return {
+          id: `EVT-${Date.now().toString().slice(-3)}`,
+          ...eventData,
+        };
+      }
     }
   },
 
+  // Alias
+  async createEvent(eventData) {
+    return this.createCalendarEvent(eventData);
+  },
+
   /**
-   * [PUT] Update Event
-   * Endpoint: PUT /calendar/events/:id
+   * [PUT] Edit Jadwal
+   * Endpoint: PUT /calendar/:id
    */
   async updateCalendarEvent(id, eventData) {
     try {
-      const response = await apiClient.put(`/calendar/events/${id}`, eventData);
+      const response = await apiClient.put(`/calendar/${id}`, eventData);
       return response.data || response;
     } catch (err) {
-      return { id, ...eventData };
+      try {
+        const fallbackResponse = await apiClient.put(`/calendar/events/${id}`, eventData);
+        return fallbackResponse.data || fallbackResponse;
+      } catch {
+        return { id, ...eventData };
+      }
     }
   },
 
+  // Alias
+  async updateEvent(id, eventData) {
+    return this.updateCalendarEvent(id, eventData);
+  },
+
   /**
-   * [DELETE] Hapus Event
-   * Endpoint: DELETE /calendar/events/:id
+   * [DELETE] Hapus Jadwal
+   * Endpoint: DELETE /calendar/:id
    */
   async deleteCalendarEvent(id) {
     try {
-      const response = await apiClient.delete(`/calendar/events/${id}`);
+      const response = await apiClient.delete(`/calendar/${id}`);
       return response.data || response;
     } catch (err) {
-      return { success: true, id };
+      try {
+        const fallbackResponse = await apiClient.delete(`/calendar/events/${id}`);
+        return fallbackResponse.data || fallbackResponse;
+      } catch {
+        return { success: true, id };
+      }
     }
+  },
+
+  // Alias
+  async deleteEvent(id) {
+    return this.deleteCalendarEvent(id);
   },
 };
 

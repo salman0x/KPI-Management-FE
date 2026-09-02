@@ -1,9 +1,37 @@
 /**
  * API Client Helper Universal
  * Menghubungkan Frontend ke Backend API dengan Base URL dari .env
+ * Base URL Default: https://kpi-management-be-assist.vercel.app/api
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://kpi-management-be-assist.vercel.app/api";
+
+/**
+ * Membangun URL lengkap dengan format yang aman
+ */
+function buildUrl(endpoint, params) {
+  let fullUrlString;
+  if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
+    fullUrlString = endpoint;
+  } else {
+    const cleanBase = BASE_URL.replace(/\/+$/, "");
+    const cleanPath = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    fullUrlString = `${cleanBase}${cleanPath}`;
+  }
+
+  const url = new URL(fullUrlString, window.location.origin);
+
+  // Tambahkan query params jika ada
+  if (params && typeof params === "object") {
+    Object.keys(params).forEach((key) => {
+      if (params[key] !== undefined && params[key] !== null) {
+        url.searchParams.append(key, params[key]);
+      }
+    });
+  }
+
+  return url.toString();
+}
 
 /**
  * Request universal wrapper
@@ -11,21 +39,9 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api
  * @param {object} options - Konfigurasi fetch
  */
 async function request(endpoint, options = {}) {
-  const url = new URL(
-    endpoint.startsWith("http") ? endpoint : `${BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`,
-    window.location.origin
-  );
+  const url = buildUrl(endpoint, options.params);
 
-  // Tambahkan query params jika ada
-  if (options.params) {
-    Object.keys(options.params).forEach((key) => {
-      if (options.params[key] !== undefined && options.params[key] !== null) {
-        url.searchParams.append(key, options.params[key]);
-      }
-    });
-  }
-
-  // Siapkan header & token otentikasi
+  // Siapkan header & token otentikasi (Authorization: Bearer <TOKEN>)
   const headers = {
     "Content-Type": "application/json",
     ...options.headers,
@@ -41,23 +57,36 @@ async function request(endpoint, options = {}) {
     headers,
   };
 
-  if (options.body && typeof options.body === "object") {
+  if (options.body && typeof options.body === "object" && !(options.body instanceof FormData)) {
     config.body = JSON.stringify(options.body);
   }
 
   try {
-    const response = await fetch(url.toString(), config);
+    const response = await fetch(url, config);
 
-    // Jika response tidak ok, lempar error dengan pesan dari server
+    // Jika response tidak ok, lempar error dengan pesan dari server atau default status
     if (!response.ok) {
       let errorMessage = `HTTP Error ${response.status}: ${response.statusText}`;
       try {
         const errorData = await response.json();
-        if (errorData?.message) errorMessage = errorData.message;
+        if (errorData?.message) {
+          errorMessage = errorData.message;
+        } else if (errorData?.error) {
+          errorMessage = errorData.error;
+        }
       } catch {
-        // Abaikan jika bukan JSON
+        // Abaikan jika respons bukan JSON
       }
-      throw new Error(errorMessage);
+
+      if (response.status === 401) {
+        errorMessage = errorMessage || "Sesi login telah berakhir atau tidak sah (401 Unauthorized).";
+      } else if (response.status === 403) {
+        errorMessage = errorMessage || "Akses ditolak (403 Forbidden). Tindakan ini khusus akun HR.";
+      }
+
+      const error = new Error(errorMessage);
+      error.status = response.status;
+      throw error;
     }
 
     // Jika response status 204 No Content

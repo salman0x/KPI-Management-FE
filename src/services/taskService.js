@@ -69,11 +69,11 @@ export const FALLBACK_TASKS = [
 ];
 
 /**
- * API SERVICE: TASK MANAGEMENT (Kanban, List, Point PO/HR, & QA)
+ * API SERVICE: 4. TASKS (Manajemen Tugas / Kanban)
  */
 export const taskService = {
   /**
-   * [GET] Ambil Semua Data Task
+   * [GET] Ambil Semua Task (Pekerjaan)
    * Endpoint: GET /tasks?category=...&status=...&assignee=...
    */
   async getTasks(params = {}) {
@@ -87,7 +87,35 @@ export const taskService = {
   },
 
   /**
-   * [POST] Buat Task Baru (Karyawan / HR)
+   * [GET] Lihat Detail 1 Task
+   * Endpoint: GET /tasks/:id
+   */
+  async getTaskById(id) {
+    try {
+      const response = await apiClient.get(`/tasks/${id}`);
+      return response.data || response;
+    } catch (err) {
+      console.info(`[Fallback Mode] Ambil detail task ${id} lokal.`);
+      return FALLBACK_TASKS.find((t) => t.id === id) || null;
+    }
+  },
+
+  /**
+   * [GET] Riwayat Perubahan Status Task
+   * Endpoint: GET /tasks/:id/history
+   */
+  async getTaskHistory(id) {
+    try {
+      const response = await apiClient.get(`/tasks/${id}/history`);
+      return response.data || response;
+    } catch (err) {
+      console.info(`[Fallback Mode] Ambil history task ${id} lokal.`);
+      return [];
+    }
+  },
+
+  /**
+   * [POST] Buat Task Baru
    * Endpoint: POST /tasks
    */
   async createTask(taskData) {
@@ -108,7 +136,35 @@ export const taskService = {
   },
 
   /**
-   * [PATCH] Ubah Status Task (Kanban Drag & Drop / Select Status)
+   * [PUT] Edit Detail Task (Khusus HR)
+   * Endpoint: PUT /tasks/:id
+   */
+  async updateTask(id, taskData) {
+    try {
+      const response = await apiClient.put(`/tasks/${id}`, taskData);
+      return response.data || response;
+    } catch (err) {
+      console.info(`[Fallback Mode] Update detail task ${id} lokal.`);
+      return { id, ...taskData };
+    }
+  },
+
+  /**
+   * [DELETE] Hapus Task (Khusus HR)
+   * Endpoint: DELETE /tasks/:id
+   */
+  async deleteTask(id) {
+    try {
+      const response = await apiClient.delete(`/tasks/${id}`);
+      return response.data || response;
+    } catch (err) {
+      console.info(`[Fallback Mode] Hapus task ${id} lokal.`);
+      return { success: true, id };
+    }
+  },
+
+  /**
+   * [PATCH] Pindah Kolom Kanban (Misal: Pindah dari 'To Do' ke 'In Progress')
    * Endpoint: PATCH /tasks/:id/status
    */
   async updateTaskStatus(id, status) {
@@ -121,7 +177,7 @@ export const taskService = {
   },
 
   /**
-   * [PATCH] Atur Poin Story Points (Khusus HR / PO)
+   * [PATCH] Update Story Point (Khusus HR)
    * Endpoint: PATCH /tasks/:id/point
    */
   async updateTaskPoint(id, point) {
@@ -143,19 +199,6 @@ export const taskService = {
       return response.data || response;
     } catch (err) {
       return { id, status: "On Progress", backwardIncrement: 1 };
-    }
-  },
-
-  /**
-   * [DELETE] Hapus Task (Khusus HR)
-   * Endpoint: DELETE /tasks/:id
-   */
-  async deleteTask(id) {
-    try {
-      const response = await apiClient.delete(`/tasks/${id}`);
-      return response.data || response;
-    } catch (err) {
-      return { success: true, id };
     }
   },
 };

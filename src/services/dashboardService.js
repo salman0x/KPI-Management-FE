@@ -2,7 +2,6 @@ import apiClient from "./apiClient";
 
 /**
  * Data Cadangan (Mock Fallback) jika server Backend belum online / belum deploy.
- * Mencegah aplikasi blank atau error.
  */
 export const FALLBACK_DASHBOARD_TASKS = [
   {
@@ -44,11 +43,11 @@ export const FALLBACK_DASHBOARD_TASKS = [
 ];
 
 /**
- * API SERVICE: DASHBOARD
+ * API SERVICE: 2. DASHBOARD
  */
 export const dashboardService = {
   /**
-   * [API 1 - GET] Mengambil Ringkasan Statistik Kartu Dashboard
+   * [GET] Mengambil angka statistik untuk Dashboard
    * Endpoint: GET /dashboard/stats
    */
   async getDashboardStats(params = {}) {
@@ -57,13 +56,13 @@ export const dashboardService = {
       return response.data || response;
     } catch (err) {
       console.info("[Fallback Mode] Backend /dashboard/stats belum aktif, menggunakan fallback data.");
-      return null; // Komponen akan otomatis menghitung dari task list jika null
+      return null;
     }
   },
 
   /**
-   * [API 1 - GET] Mengambil Daftar Task untuk Dashboard
-   * Endpoint: GET /dashboard/tasks?startDate=...&endDate=...
+   * [GET] List tugas untuk Sprint saat ini
+   * Endpoint: GET /dashboard/tasks
    */
   async getDashboardTasks(params = {}) {
     try {
@@ -75,14 +74,14 @@ export const dashboardService = {
       if (isHR) return FALLBACK_DASHBOARD_TASKS;
       return FALLBACK_DASHBOARD_TASKS.filter(
         (t) =>
-          t.assignee.toLowerCase().includes("sari") ||
-          (userName && t.assignee.toLowerCase().includes(userName.toLowerCase()))
+          (t.assignee && t.assignee.toLowerCase().includes("sari")) ||
+          (userName && t.assignee && t.assignee.toLowerCase().includes(userName.toLowerCase()))
       );
     }
   },
 
   /**
-   * [API 2 - PUT] Mengubah / Update Data Task dari Modal Edit (Khusus HR)
+   * [PUT] Edit tugas sprint (Khusus HR)
    * Endpoint: PUT /dashboard/tasks/:id
    */
   async updateDashboardTask(id, taskData) {
@@ -96,7 +95,7 @@ export const dashboardService = {
   },
 
   /**
-   * [API 2 - DELETE] Menghapus Task dari Dashboard (Khusus HR)
+   * [DELETE] Hapus tugas sprint (Khusus HR)
    * Endpoint: DELETE /dashboard/tasks/:id
    */
   async deleteDashboardTask(id) {

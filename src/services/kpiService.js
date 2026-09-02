@@ -1,4 +1,6 @@
 import apiClient from "./apiClient";
+import { kpiTemplateService } from "./kpiTemplateService";
+import { kpiAssessmentService } from "./kpiAssessmentService";
 
 export const FALLBACK_KPI_INPUTS = {
   1: { onTime: 9, total: 10 },
@@ -12,11 +14,11 @@ export const FALLBACK_KPI_INPUTS = {
 };
 
 /**
- * API SERVICE: KPI TRACKING & PERFORMANCE EVALUATION (Role Karyawan & HR)
+ * API SERVICE: 9. KPI (Evaluasi Umum, Templates, & Assessments)
  */
 export const kpiService = {
   /**
-   * [GET] Ambil Data Evaluasi KPI Karyawan per Bulan & Tahun
+   * [GET] Ambil Data Evaluasi KPI
    * Endpoint: GET /kpi/evaluations?employeeId=...&month=...&year=...
    */
   async getKpiEvaluations(params = {}) {
@@ -24,7 +26,7 @@ export const kpiService = {
       const response = await apiClient.get("/kpi/evaluations", params);
       return response.data || response;
     } catch (err) {
-      console.info("[Fallback Mode] Backend /kpi/evaluations belum aktif, menggunakan fallback inputs.");
+      console.info("[Fallback Mode] Backend /kpi/evaluations offline, menggunakan fallback inputs.");
       return {
         inputs: FALLBACK_KPI_INPUTS,
         employeeId: params.employeeId || "EMP-001",
@@ -35,7 +37,7 @@ export const kpiService = {
   },
 
   /**
-   * [POST / PUT] Simpan Input Nilai Capaian Real Karyawan
+   * [POST] Simpan Data Evaluasi KPI
    * Endpoint: POST /kpi/evaluations
    */
   async saveKpiEvaluations(payload) {
@@ -49,17 +51,14 @@ export const kpiService = {
   },
 
   /**
-   * [GET] Ambil Ringkasan Laporan KPI Semua Karyawan (Khusus HR Export Excel)
-   * Endpoint: GET /kpi/summary?month=...&year=...
+   * KPI Templates Helper
    */
-  async getKpiSummaryAll(params = {}) {
-    try {
-      const response = await apiClient.get("/kpi/summary", params);
-      return response.data || response;
-    } catch (err) {
-      return null;
-    }
-  },
+  templates: kpiTemplateService,
+
+  /**
+   * KPI Assessments Helper
+   */
+  assessments: kpiAssessmentService,
 };
 
 export default kpiService;
