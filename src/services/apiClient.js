@@ -92,7 +92,12 @@ async function request(endpoint, options = {}) {
     // Jika response status 204 No Content
     if (response.status === 204) return null;
 
-    return await response.json();
+    const data = await response.json();
+    if (data && data.success === false) {
+      throw new Error(data.message || "Request tidak berhasil diproses oleh server.");
+    }
+
+    return data;
   } catch (error) {
     // Log error di console untuk kemudahan debug FE & BE
     console.warn(`[API Client Error] [${options.method || "GET"}] ${endpoint}:`, error.message);
