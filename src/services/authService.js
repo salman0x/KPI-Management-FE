@@ -16,6 +16,18 @@ export const authService = {
     const cleanEmail = (email || "").trim().toLowerCase();
     const cleanPassword = (password || "").trim();
 
+    const hrAccount = OFFICIAL_HR_ACCOUNTS.find(
+      (acc) => acc.email.toLowerCase() === cleanEmail
+    );
+
+    if (!hrAccount) {
+      throw new Error("Email tidak terdaftar sebagai akun HR.");
+    }
+
+    if (hrAccount.password !== cleanPassword) {
+      throw new Error("Kata sandi yang Anda masukkan salah.");
+    }
+
     try {
       const response = await apiClient.post("/auth/login", {
         email: cleanEmail,
@@ -36,36 +48,7 @@ export const authService = {
       }
 
       return user;
-    } catch (err) {
-      // Fallback validasi lokal jika backend timeout, offline, atau database buffering
-      const isServerDownOrTimeout =
-        !err.message ||
-        err.message.includes("Failed to fetch") ||
-        err.message.includes("NetworkError") ||
-        err.message.includes("buffering timed out") ||
-        err.message.includes("timed out") ||
-        err.message.includes("timeout") ||
-        err.status === 500 ||
-        err.status === 502 ||
-        err.status === 503 ||
-        err.status === 504;
-
-      if (!isServerDownOrTimeout) {
-        throw err;
-      }
-
-      const hrAccount = OFFICIAL_HR_ACCOUNTS.find(
-        (acc) => acc.email.toLowerCase() === cleanEmail
-      );
-
-      if (!hrAccount) {
-        throw new Error("Email tidak terdaftar sebagai akun HR.");
-      }
-
-      if (hrAccount.password !== cleanPassword) {
-        throw new Error("Kata sandi yang Anda masukkan salah.");
-      }
-
+    } catch {
       return {
         _id: hrAccount._id,
         name: hrAccount.name,
