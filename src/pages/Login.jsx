@@ -42,7 +42,7 @@ export default function Login() {
     navigate("/");
   };
 
-  // 2. Login via Form Email & Password (Khusus 2 Akun HR Resmi)
+  // 2. Login via Form Email & Password (Khusus Akun HR Resmi)
   const handleFormLogin = async (e) => {
     e.preventDefault();
     setErrorMessage("");

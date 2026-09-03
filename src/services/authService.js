@@ -12,20 +12,6 @@ export const OFFICIAL_HR_ACCOUNTS = [
     role: "HR",
     position: "HR",
   },
-  {
-    email: "hr.admin@assist.id",
-    password: "adminhr123",
-    name: "Admin HR",
-    role: "HR",
-    position: "HR",
-  },
-  {
-    email: "hr.people@assist.id",
-    password: "hrpeople123",
-    name: "People Operations HR",
-    role: "HR",
-    position: "HR",
-  },
 ];
 
 /**
