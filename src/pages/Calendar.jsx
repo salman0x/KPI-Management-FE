@@ -37,7 +37,6 @@ export default function CalendarPage() {
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
 
-  // [API - GET] Ambil event kalender saat bulan, tahun, atau filter berubah
   useEffect(() => {
     let isMounted = true;
     async function loadEvents() {

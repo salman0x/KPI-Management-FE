@@ -88,34 +88,21 @@ export const FALLBACK_EMPLOYEES = [
   },
 ];
 
-/**
- * API SERVICE: 3. EMPLOYEES (Karyawan)
- */
 export const employeeService = {
-  /**
-   * [GET] Ambil Semua Data Karyawan
-   * Endpoint: GET /employees
-   */
   async getEmployees(params = {}) {
     try {
       const response = await apiClient.get("/employees", params);
       return response.data || response;
-    } catch (err) {
-      console.info("[Fallback Mode] Backend /employees belum aktif, menggunakan fallback data.");
+    } catch {
       return FALLBACK_EMPLOYEES;
     }
   },
 
-  /**
-   * [POST] Tambah Karyawan Baru (Khusus HR)
-   * Endpoint: POST /employees
-   */
   async createEmployee(employeeData) {
     try {
       const response = await apiClient.post("/employees", employeeData);
       return response.data || response;
-    } catch (err) {
-      console.info("[Fallback Mode] Simpan karyawan baru lokal.");
+    } catch {
       return {
         id: `EMP-${Date.now().toString().slice(-3)}`,
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(employeeData.name || "User")}`,
@@ -133,42 +120,29 @@ export const employeeService = {
     }
   },
 
-  /**
-   * [GET] Ambil Detail 1 Karyawan
-   * Endpoint: GET /employees/:id
-   */
   async getEmployeeById(id) {
     try {
       const response = await apiClient.get(`/employees/${id}`);
       return response.data || response;
-    } catch (err) {
-      console.info(`[Fallback Mode] Ambil detail employee ${id} lokal.`);
+    } catch {
       return FALLBACK_EMPLOYEES.find((e) => e.id === id) || null;
     }
   },
 
-  /**
-   * [PUT] Update Profil Karyawan (Khusus HR)
-   * Endpoint: PUT /employees/:id
-   */
   async updateEmployee(id, employeeData) {
     try {
       const response = await apiClient.put(`/employees/${id}`, employeeData);
       return response.data || response;
-    } catch (err) {
+    } catch {
       return { id, ...employeeData };
     }
   },
 
-  /**
-   * [DELETE] Hapus Karyawan (Khusus HR)
-   * Endpoint: DELETE /employees/:id
-   */
   async deleteEmployee(id) {
     try {
       const response = await apiClient.delete(`/employees/${id}`);
       return response.data || response;
-    } catch (err) {
+    } catch {
       return { success: true, id };
     }
   },

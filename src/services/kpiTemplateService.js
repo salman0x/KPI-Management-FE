@@ -20,48 +20,30 @@ export const FALLBACK_KPI_TEMPLATES = [
   },
 ];
 
-/**
- * API SERVICE: 7. KPI TEMPLATES (Template Penilaian)
- */
 export const kpiTemplateService = {
-  /**
-   * [GET] Ambil Semua Template KPI
-   * Endpoint: GET /kpi-templates
-   */
   async getKpiTemplates(params = {}) {
     try {
       const response = await apiClient.get("/kpi-templates", params);
       return response.data || response;
-    } catch (err) {
-      console.info("[Fallback Mode] Backend /kpi-templates offline, menggunakan data fallback.");
+    } catch {
       return FALLBACK_KPI_TEMPLATES;
     }
   },
 
-  /**
-   * [GET] Lihat Detail 1 Template KPI
-   * Endpoint: GET /kpi-templates/:id
-   */
   async getKpiTemplateById(id) {
     try {
       const response = await apiClient.get(`/kpi-templates/${id}`);
       return response.data || response;
-    } catch (err) {
-      console.info(`[Fallback Mode] Ambil detail template KPI ${id} lokal.`);
+    } catch {
       return FALLBACK_KPI_TEMPLATES.find((t) => t.id === id) || null;
     }
   },
 
-  /**
-   * [POST] Buat Template Baru (Khusus HR)
-   * Endpoint: POST /kpi-templates
-   */
   async createKpiTemplate(templateData) {
     try {
       const response = await apiClient.post("/kpi-templates", templateData);
       return response.data || response;
-    } catch (err) {
-      console.info("[Fallback Mode] Simpan template KPI baru lokal.");
+    } catch {
       return {
         id: `TPL-${Date.now().toString().slice(-3)}`,
         ...templateData,
@@ -69,30 +51,20 @@ export const kpiTemplateService = {
     }
   },
 
-  /**
-   * [PUT] Edit Template (Khusus HR)
-   * Endpoint: PUT /kpi-templates/:id
-   */
   async updateKpiTemplate(id, templateData) {
     try {
       const response = await apiClient.put(`/kpi-templates/${id}`, templateData);
       return response.data || response;
-    } catch (err) {
-      console.info(`[Fallback Mode] Update template KPI ${id} lokal.`);
+    } catch {
       return { id, ...templateData };
     }
   },
 
-  /**
-   * [DELETE] Hapus Template (Khusus HR)
-   * Endpoint: DELETE /kpi-templates/:id
-   */
   async deleteKpiTemplate(id) {
     try {
       const response = await apiClient.delete(`/kpi-templates/${id}`);
       return response.data || response;
-    } catch (err) {
-      console.info(`[Fallback Mode] Hapus template KPI ${id} lokal.`);
+    } catch {
       return { success: true, id };
     }
   },

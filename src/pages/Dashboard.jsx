@@ -48,7 +48,6 @@ export default function Dashboard() {
   const [startDate, setStartDate] = useState("2026-08-01");
   const [endDate, setEndDate] = useState("2026-08-31");
 
-  // [API 1 - GET] Fetch data dashboard saat halaman dibuka atau filter tanggal berubah
   useEffect(() => {
     let isMounted = true;
     async function loadDashboard() {
@@ -75,12 +74,10 @@ export default function Dashboard() {
     };
   }, [startDate, endDate, isHR, userName]);
 
-  // Filter task: Karyawan hanya melihat task pribadinya, HR melihat semua task
   const displayedTasks = isHR
     ? taskList
     : taskList.filter((t) => t.assignee.toLowerCase().includes("sari") || t.assignee.toLowerCase().includes(userName.toLowerCase()));
 
-  // Hitung data statistik dinamis dari task list
   const totalTasks = displayedTasks.length;
   const backlogCount = displayedTasks.filter((t) => t.status === "Backlog").length;
   const readyCount = displayedTasks.filter((t) => t.status === "Ready").length;
@@ -98,7 +95,6 @@ export default function Dashboard() {
     { title: "Done", value: doneCount, sub: "Tasks", icon: <FaCheck />, bg: "bg-green-50", color: "text-green-500" },
   ];
 
-  // [API 2 - DELETE] Handle Hapus Task via dashboardService
   const handleDeleteTask = async (id) => {
     try {
       await dashboardService.deleteDashboardTask(id);
@@ -110,7 +106,6 @@ export default function Dashboard() {
     }
   };
 
-  // [API 2 - PUT] Handle Simpan Perubahan Edit Task via dashboardService
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!editingTask) return;

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaEye, FaEyeSlash, FaExclamationCircle, FaSpinner, FaUserCheck } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaExclamationCircle, FaSpinner } from "react-icons/fa";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/authService";
@@ -16,7 +16,6 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // 1. Login via Google OAuth (Khusus Semua Karyawan)
   const handleGoogleLogin = async (credentialResponse) => {
     setErrorMessage("");
     setIsLoading(true);
@@ -31,18 +30,6 @@ export default function Login() {
     }
   };
 
-  // Demo Login Cepat Karyawan (Jika Google Cloud sedang propagasi / delay)
-  const handleDemoKaryawanLogin = () => {
-    login({
-      name: "Sari Wulandari",
-      role: "Karyawan",
-      email: "sari@assist.id",
-      loginMethod: "google",
-    });
-    navigate("/");
-  };
-
-  // 2. Login via Form Email & Password (Khusus Akun HR Resmi)
   const handleFormLogin = async (e) => {
     e.preventDefault();
     setErrorMessage("");
@@ -62,25 +49,21 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-sm bg-white rounded-3xl shadow-lg p-8 md:p-10 border border-gray-100">
-        {/* Logo */}
         <div className="flex justify-center mb-6">
           <img src={logo} alt="Assist.id" className="h-10 w-auto object-contain" />
         </div>
 
-        {/* Alert Error Message jika validasi gagal */}
         {errorMessage && (
-          <div className="mb-5 p-3.5 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-2.5 text-xs text-red-700 animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="mb-5 p-3.5 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-2.5 text-xs text-red-700">
             <FaExclamationCircle className="text-red-500 text-sm shrink-0 mt-0.5" />
             <span className="leading-snug">{errorMessage}</span>
           </div>
         )}
 
-        {/* Form Login (Khusus Akun Email & Password / HR) */}
         <form onSubmit={handleFormLogin} className="flex flex-col gap-4">
-          {/* Email */}
           <div>
             <label className="text-xs font-bold text-gray-800 mb-1.5 block">
-              Email Akun HR
+              Email
             </label>
             <input
               type="email"
@@ -92,7 +75,6 @@ export default function Login() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-bold text-gray-800">
@@ -121,7 +103,6 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Tombol Login */}
           <button
             type="submit"
             disabled={isLoading}
@@ -132,19 +113,17 @@ export default function Login() {
                 <FaSpinner className="animate-spin" size={14} /> Memverifikasi...
               </>
             ) : (
-              "Login sebagai HR"
+              "Login"
             )}
           </button>
         </form>
 
-        {/* Divider OR */}
         <div className="flex items-center gap-3 my-5">
           <div className="flex-1 h-px bg-gray-200"></div>
           <span className="text-xs font-semibold text-gray-400 tracking-wider">ATAU</span>
           <div className="flex-1 h-px bg-gray-200"></div>
         </div>
 
-        {/* Google Login (Untuk Karyawan) */}
         <div className="flex flex-col items-center gap-2">
           <GoogleLogin
             onSuccess={handleGoogleLogin}
@@ -156,7 +135,7 @@ export default function Login() {
             shape="rectangular"
           />
           <p className="text-[11px] text-gray-400 text-center mt-1">
-            Khusus Karyawan: Masuk otomatis dengan akun Google Assist.id
+            Masuk dengan akun Google Assist.id
           </p>
         </div>
       </div>

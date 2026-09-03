@@ -1,8 +1,5 @@
 import apiClient from "./apiClient";
 
-/**
- * DAFTAR AKUN HR RESMI YANG TELAH DITETAPKAN (Sesuai Database Backend & Fallback Lokal)
- */
 export const OFFICIAL_HR_ACCOUNTS = [
   {
     _id: "6a94f8f6e9bd1d2e3f948e57",
@@ -14,16 +11,7 @@ export const OFFICIAL_HR_ACCOUNTS = [
   },
 ];
 
-/**
- * API SERVICE: 1. AUTH (Otentikasi)
- */
 export const authService = {
-  /**
-   * [POST] Login User via Email & Password
-   * Endpoint: POST /auth/login
-   * @param {string} email
-   * @param {string} password
-   */
   async loginWithEmail(email, password) {
     const cleanEmail = (email || "").trim().toLowerCase();
     const cleanPassword = (password || "").trim();
@@ -49,30 +37,24 @@ export const authService = {
 
       return user;
     } catch (err) {
-      // Jika Backend mengembalikan error respons khusus (misal 401 Unauthorized / 400 Bad Request), teruskan pesan error
       if (err.message && !err.message.includes("Failed to fetch") && !err.message.includes("NetworkError")) {
         throw err;
       }
 
-      console.info("[Fallback Mode] Backend /auth/login offline, memvalidasi akun HR lokal.");
-
-      // 1. Cari apakah email terdaftar di daftar akun HR
       const hrAccount = OFFICIAL_HR_ACCOUNTS.find(
         (acc) => acc.email.toLowerCase() === cleanEmail
       );
 
       if (!hrAccount) {
-        throw new Error("Email tidak terdaftar sebagai akun resmi Admin HR.");
+        throw new Error("Email tidak terdaftar sebagai akun HR.");
       }
 
-      // 2. Periksa apakah password cocok
       if (hrAccount.password !== cleanPassword) {
-        throw new Error("Kata sandi yang Anda masukkan salah. Silakan coba lagi.");
+        throw new Error("Kata sandi yang Anda masukkan salah.");
       }
 
-      // 3. Kredensial valid -> kembalikan profil user HR
       return {
-        _id: hrAccount._id || "6a94f8f6e9bd1d2e3f948e57",
+        _id: hrAccount._id,
         name: hrAccount.name,
         role: "HR",
         email: hrAccount.email,
@@ -82,16 +64,10 @@ export const authService = {
     }
   },
 
-  // Alias untuk kompatibilitas
   async login(email, password) {
     return this.loginWithEmail(email, password);
   },
 
-  /**
-   * [POST] Daftar User Baru
-   * Endpoint: POST /auth/register
-   * @param {object} userData - { name, email, password, role, department }
-   */
   async register(userData) {
     try {
       const response = await apiClient.post("/auth/register", userData);
@@ -101,16 +77,10 @@ export const authService = {
       }
       return response.data || response;
     } catch (err) {
-      console.warn("[Register Error]:", err.message);
       throw err;
     }
   },
 
-  /**
-   * [POST] Login via Google OAuth
-   * Endpoint: POST /auth/google
-   * @param {object|string} credentialResponse - Response dari Google OAuth
-   */
   async loginWithGoogle(credentialResponse) {
     const tokenPayload = typeof credentialResponse === "string" 
       ? credentialResponse 
@@ -128,7 +98,6 @@ export const authService = {
       }
       return response.user || response.data?.user || response.data || response;
     } catch (err) {
-      console.info("[Fallback Mode] Login Google Karyawan offline.");
       return {
         name: "Sari Wulandari",
         role: "Karyawan",
@@ -138,27 +107,19 @@ export const authService = {
     }
   },
 
-  /**
-   * [GET] Ambil Profil User yang sedang login (Butuh Token)
-   * Endpoint: GET /auth/me
-   */
   async getCurrentUser() {
     try {
       const response = await apiClient.get("/auth/me");
       return response.user || response.data?.user || response.data || response;
-    } catch (err) {
+    } catch {
       return null;
     }
   },
 
-  // Alias untuk kompatibilitas
   async getMe() {
     return this.getCurrentUser();
   },
 
-  /**
-   * Logout User - Bersihkan token dan data sesi
-   */
   logout() {
     localStorage.removeItem("kpi_token");
     localStorage.removeItem("kpi_user");

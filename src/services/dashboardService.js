@@ -1,8 +1,5 @@
 import apiClient from "./apiClient";
 
-/**
- * Data Cadangan (Mock Fallback) jika server Backend belum online / belum deploy.
- */
 export const FALLBACK_DASHBOARD_TASKS = [
   {
     id: "TSK-001",
@@ -42,34 +39,21 @@ export const FALLBACK_DASHBOARD_TASKS = [
   },
 ];
 
-/**
- * API SERVICE: 2. DASHBOARD
- */
 export const dashboardService = {
-  /**
-   * [GET] Mengambil angka statistik untuk Dashboard
-   * Endpoint: GET /dashboard/stats
-   */
   async getDashboardStats(params = {}) {
     try {
       const response = await apiClient.get("/dashboard/stats", params);
       return response.data || response;
-    } catch (err) {
-      console.info("[Fallback Mode] Backend /dashboard/stats belum aktif, menggunakan fallback data.");
+    } catch {
       return null;
     }
   },
 
-  /**
-   * [GET] List tugas untuk Sprint saat ini
-   * Endpoint: GET /dashboard/tasks
-   */
   async getDashboardTasks(params = {}) {
     try {
       const response = await apiClient.get("/dashboard/tasks", params);
       return response.data || response;
-    } catch (err) {
-      console.info("[Fallback Mode] Backend /dashboard/tasks belum aktif, menggunakan fallback data.");
+    } catch {
       const { isHR, userName } = params;
       if (isHR) return FALLBACK_DASHBOARD_TASKS;
       return FALLBACK_DASHBOARD_TASKS.filter(
@@ -80,30 +64,20 @@ export const dashboardService = {
     }
   },
 
-  /**
-   * [PUT] Edit tugas sprint (Khusus HR)
-   * Endpoint: PUT /dashboard/tasks/:id
-   */
   async updateDashboardTask(id, taskData) {
     try {
       const response = await apiClient.put(`/dashboard/tasks/${id}`, taskData);
       return response.data || response;
-    } catch (err) {
-      console.info(`[Fallback Mode] Simpan edit task ${id} lokal.`);
+    } catch {
       return { success: true, ...taskData };
     }
   },
 
-  /**
-   * [DELETE] Hapus tugas sprint (Khusus HR)
-   * Endpoint: DELETE /dashboard/tasks/:id
-   */
   async deleteDashboardTask(id) {
     try {
       const response = await apiClient.delete(`/dashboard/tasks/${id}`);
       return response.data || response;
-    } catch (err) {
-      console.info(`[Fallback Mode] Hapus task ${id} lokal.`);
+    } catch {
       return { success: true, id };
     }
   },

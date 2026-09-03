@@ -37,7 +37,6 @@ export default function Employees() {
     email: "",
   });
 
-  // [API - GET] Ambil data karyawan
   useEffect(() => {
     let isMounted = true;
     async function loadEmployees() {
@@ -60,7 +59,6 @@ export default function Employees() {
     return selectedRole === "All" || emp.role.includes(selectedRole) || emp.department === selectedRole;
   });
 
-  // [API - POST] Tambah Karyawan Baru via employeeService
   const handleCreateEmployee = async (e) => {
     e.preventDefault();
     if (!newEmployee.name.trim() || !newEmployee.email.trim()) return;

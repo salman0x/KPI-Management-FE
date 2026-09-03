@@ -71,7 +71,6 @@ export default function Tasks() {
     status: "Backlog",
   });
 
-  // [API - GET] Ambil semua task
   useEffect(() => {
     let isMounted = true;
     async function loadTasks() {
@@ -90,12 +89,10 @@ export default function Tasks() {
     };
   }, []);
 
-  // Filter Tasks
   const filteredTasks = tasks.filter((task) => {
     return selectedCategory === "All" || task.category === selectedCategory;
   });
 
-  // [API - PATCH] Simpan Poin oleh HR / PO via taskService
   const handleSavePoint = async (e) => {
     e.preventDefault();
     if (!selectedTaskForPoint) return;
@@ -114,7 +111,6 @@ export default function Tasks() {
     }
   };
 
-  // Drag and Drop Handlers (Ala ClickUp)
   const handleDragStart = (e, taskId) => {
     e.dataTransfer.setData("text/plain", taskId);
     setDraggedTaskId(taskId);
@@ -144,7 +140,6 @@ export default function Tasks() {
     setDragOverColumn(null);
   };
 
-  // [API - POST] Handle Tambah Task Baru via taskService
   const handleCreateTask = async (e) => {
     e.preventDefault();
     if (!newTask.title.trim()) return;
@@ -168,7 +163,6 @@ export default function Tasks() {
     }
   };
 
-  // [API - PATCH] Ubah Status Task via taskService
   const handleStatusChange = async (taskId, newStatus) => {
     try {
       await taskService.updateTaskStatus(taskId, newStatus);
@@ -180,7 +174,6 @@ export default function Tasks() {
     }
   };
 
-  // [API - POST] Aksi Khusus QA: Kembalikan ke Dev karena Bug via taskService
   const handleRejectQA = async (taskId) => {
     try {
       await taskService.rejectTaskQA(taskId);

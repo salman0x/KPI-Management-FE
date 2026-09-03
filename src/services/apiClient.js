@@ -1,14 +1,5 @@
-/**
- * API Client Helper Universal
- * Menghubungkan Frontend ke Backend API dengan Base URL dari .env
- * Base URL Default: https://kpi-management-be-assist.vercel.app/api
- */
-
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://kpi-management-be-assist.vercel.app/api";
 
-/**
- * Membangun URL lengkap dengan format yang aman
- */
 function buildUrl(endpoint, params) {
   let fullUrlString;
   if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
@@ -21,7 +12,6 @@ function buildUrl(endpoint, params) {
 
   const url = new URL(fullUrlString, window.location.origin);
 
-  // Tambahkan query params jika ada
   if (params && typeof params === "object") {
     Object.keys(params).forEach((key) => {
       if (params[key] !== undefined && params[key] !== null) {
@@ -33,15 +23,9 @@ function buildUrl(endpoint, params) {
   return url.toString();
 }
 
-/**
- * Request universal wrapper
- * @param {string} endpoint - Path endpoint (misal: '/dashboard/stats')
- * @param {object} options - Konfigurasi fetch
- */
 async function request(endpoint, options = {}) {
   const url = buildUrl(endpoint, options.params);
 
-  // Siapkan header & token otentikasi (Authorization: Bearer <TOKEN>)
   const headers = {
     "Content-Type": "application/json",
     ...options.headers,
@@ -64,7 +48,6 @@ async function request(endpoint, options = {}) {
   try {
     const response = await fetch(url, config);
 
-    // Jika response tidak ok, lempar error dengan pesan dari server atau default status
     if (!response.ok) {
       let errorMessage = `HTTP Error ${response.status}: ${response.statusText}`;
       try {
@@ -75,13 +58,13 @@ async function request(endpoint, options = {}) {
           errorMessage = errorData.error;
         }
       } catch {
-        // Abaikan jika respons bukan JSON
+        // ignore non-json error responses
       }
 
       if (response.status === 401) {
-        errorMessage = errorMessage || "Sesi login telah berakhir atau tidak sah (401 Unauthorized).";
+        errorMessage = errorMessage || "Sesi login telah berakhir (401 Unauthorized).";
       } else if (response.status === 403) {
-        errorMessage = errorMessage || "Akses ditolak (403 Forbidden). Tindakan ini khusus akun HR.";
+        errorMessage = errorMessage || "Akses ditolak (403 Forbidden).";
       }
 
       const error = new Error(errorMessage);
@@ -89,18 +72,16 @@ async function request(endpoint, options = {}) {
       throw error;
     }
 
-    // Jika response status 204 No Content
     if (response.status === 204) return null;
 
     const data = await response.json();
     if (data && data.success === false) {
-      throw new Error(data.message || "Request tidak berhasil diproses oleh server.");
+      throw new Error(data.message || "Gagal memproses permintaan.");
     }
 
     return data;
   } catch (error) {
-    // Log error di console untuk kemudahan debug FE & BE
-    console.warn(`[API Client Error] [${options.method || "GET"}] ${endpoint}:`, error.message);
+    console.warn(`[API Client] [${options.method || "GET"}] ${endpoint}:`, error.message);
     throw error;
   }
 }

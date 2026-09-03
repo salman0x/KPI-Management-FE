@@ -75,26 +75,16 @@ export const FALLBACK_EVENTS = [
   },
 ];
 
-/**
- * API SERVICE: 5. CALENDAR (Jadwal / Event)
- */
 export const calendarService = {
-  /**
-   * [GET] Ambil Semua Jadwal/Event (Endpoint: /calendar atau /calendar/events)
-   * Endpoint: GET /calendar
-   */
   async getCalendarEvents(params = {}) {
     try {
-      // Coba endpoint utama /calendar
       const response = await apiClient.get("/calendar", params);
       return response.data || response;
-    } catch (err) {
+    } catch {
       try {
-        // Fallback coba ke endpoint alias /calendar/events
         const fallbackResponse = await apiClient.get("/calendar/events", params);
         return fallbackResponse.data || fallbackResponse;
       } catch {
-        console.info("[Fallback Mode] Backend /calendar offline, menggunakan data fallback.");
         const currentYear = params.year !== undefined ? Number(params.year) : new Date().getFullYear();
         const currentMonth = params.month !== undefined ? Number(params.month) : new Date().getMonth();
 
@@ -107,20 +97,15 @@ export const calendarService = {
     }
   },
 
-  // Alias
   async getEvents(params = {}) {
     return this.getCalendarEvents(params);
   },
 
-  /**
-   * [POST] Buat Jadwal Baru
-   * Endpoint: POST /calendar
-   */
   async createCalendarEvent(eventData) {
     try {
       const response = await apiClient.post("/calendar", eventData);
       return response.data || response;
-    } catch (err) {
+    } catch {
       try {
         const fallbackResponse = await apiClient.post("/calendar/events", eventData);
         return fallbackResponse.data || fallbackResponse;
@@ -133,20 +118,15 @@ export const calendarService = {
     }
   },
 
-  // Alias
   async createEvent(eventData) {
     return this.createCalendarEvent(eventData);
   },
 
-  /**
-   * [PUT] Edit Jadwal
-   * Endpoint: PUT /calendar/:id
-   */
   async updateCalendarEvent(id, eventData) {
     try {
       const response = await apiClient.put(`/calendar/${id}`, eventData);
       return response.data || response;
-    } catch (err) {
+    } catch {
       try {
         const fallbackResponse = await apiClient.put(`/calendar/events/${id}`, eventData);
         return fallbackResponse.data || fallbackResponse;
@@ -156,20 +136,15 @@ export const calendarService = {
     }
   },
 
-  // Alias
   async updateEvent(id, eventData) {
     return this.updateCalendarEvent(id, eventData);
   },
 
-  /**
-   * [DELETE] Hapus Jadwal
-   * Endpoint: DELETE /calendar/:id
-   */
   async deleteCalendarEvent(id) {
     try {
       const response = await apiClient.delete(`/calendar/${id}`);
       return response.data || response;
-    } catch (err) {
+    } catch {
       try {
         const fallbackResponse = await apiClient.delete(`/calendar/events/${id}`);
         return fallbackResponse.data || fallbackResponse;
@@ -179,7 +154,6 @@ export const calendarService = {
     }
   },
 
-  // Alias
   async deleteEvent(id) {
     return this.deleteCalendarEvent(id);
   },

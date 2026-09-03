@@ -27,48 +27,30 @@ export const FALLBACK_KPI_ASSESSMENTS = [
   },
 ];
 
-/**
- * API SERVICE: 8. KPI ASSESSMENTS (Penilaian KPI)
- */
 export const kpiAssessmentService = {
-  /**
-   * [GET] Ambil Semua Data Penilaian KPI
-   * Endpoint: GET /kpi-assessments
-   */
   async getKpiAssessments(params = {}) {
     try {
       const response = await apiClient.get("/kpi-assessments", params);
       return response.data || response;
-    } catch (err) {
-      console.info("[Fallback Mode] Backend /kpi-assessments offline, menggunakan data fallback.");
+    } catch {
       return FALLBACK_KPI_ASSESSMENTS;
     }
   },
 
-  /**
-   * [GET] Lihat Detail 1 Penilaian KPI
-   * Endpoint: GET /kpi-assessments/:id
-   */
   async getKpiAssessmentById(id) {
     try {
       const response = await apiClient.get(`/kpi-assessments/${id}`);
       return response.data || response;
-    } catch (err) {
-      console.info(`[Fallback Mode] Ambil detail assessment ${id} lokal.`);
+    } catch {
       return FALLBACK_KPI_ASSESSMENTS.find((a) => a.id === id) || null;
     }
   },
 
-  /**
-   * [POST] Buat Penilaian KPI Baru
-   * Endpoint: POST /kpi-assessments
-   */
   async createKpiAssessment(assessmentData) {
     try {
       const response = await apiClient.post("/kpi-assessments", assessmentData);
       return response.data || response;
-    } catch (err) {
-      console.info("[Fallback Mode] Simpan penilaian KPI baru lokal.");
+    } catch {
       return {
         id: `ASM-${Date.now().toString().slice(-3)}`,
         status: "Draft",
@@ -77,44 +59,29 @@ export const kpiAssessmentService = {
     }
   },
 
-  /**
-   * [PUT] Edit/Simpan Draft Penilaian
-   * Endpoint: PUT /kpi-assessments/:id
-   */
   async updateKpiAssessment(id, assessmentData) {
     try {
       const response = await apiClient.put(`/kpi-assessments/${id}`, assessmentData);
       return response.data || response;
-    } catch (err) {
-      console.info(`[Fallback Mode] Update penilaian KPI ${id} lokal.`);
+    } catch {
       return { id, ...assessmentData };
     }
   },
 
-  /**
-   * [PATCH] Kirim Penilaian (Submit)
-   * Endpoint: PATCH /kpi-assessments/:id/submit
-   */
   async submitKpiAssessment(id, submitData = {}) {
     try {
       const response = await apiClient.patch(`/kpi-assessments/${id}/submit`, submitData);
       return response.data || response;
-    } catch (err) {
-      console.info(`[Fallback Mode] Submit penilaian KPI ${id} lokal.`);
+    } catch {
       return { id, status: "Submitted", submittedAt: new Date().toISOString(), ...submitData };
     }
   },
 
-  /**
-   * [PATCH] Review/Approve Penilaian (Khusus HR)
-   * Endpoint: PATCH /kpi-assessments/:id/review
-   */
   async reviewKpiAssessment(id, reviewData = {}) {
     try {
       const response = await apiClient.patch(`/kpi-assessments/${id}/review`, reviewData);
       return response.data || response;
-    } catch (err) {
-      console.info(`[Fallback Mode] Review penilaian KPI ${id} lokal.`);
+    } catch {
       return { id, status: reviewData.status || "Approved", reviewedAt: new Date().toISOString(), ...reviewData };
     }
   },
