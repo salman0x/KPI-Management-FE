@@ -1,20 +1,30 @@
 import apiClient from "./apiClient";
 
 /**
- * DAFTAR 2 AKUN HR RESMI YANG TELAH DITETAPKAN (Fallback Lokal)
+ * DAFTAR AKUN HR RESMI YANG TELAH DITETAPKAN (Sesuai Database Backend & Fallback Lokal)
  */
 export const OFFICIAL_HR_ACCOUNTS = [
+  {
+    _id: "6a94f8f6e9bd1d2e3f948e57",
+    email: "hr@assist.com",
+    password: "HrAssist123!",
+    name: "yoyo",
+    role: "HR",
+    position: "HR",
+  },
   {
     email: "hr.admin@assist.id",
     password: "adminhr123",
     name: "Admin HR",
     role: "HR",
+    position: "HR",
   },
   {
     email: "hr.people@assist.id",
     password: "hrpeople123",
     name: "People Operations HR",
     role: "HR",
+    position: "HR",
   },
 ];
 
@@ -43,7 +53,15 @@ export const authService = {
         localStorage.setItem("kpi_token", token);
       }
 
-      return response.user || response.data?.user || response.data || response;
+      let user = response.user || response.data?.user || response.data || response;
+      if (user && typeof user === "object") {
+        user = {
+          ...user,
+          role: user.role?.toLowerCase() === "hr" ? "HR" : user.role,
+        };
+      }
+
+      return user;
     } catch (err) {
       // Jika Backend mengembalikan error respons khusus (misal 401 Unauthorized / 400 Bad Request), teruskan pesan error
       if (err.message && !err.message.includes("Failed to fetch") && !err.message.includes("NetworkError")) {
@@ -52,7 +70,7 @@ export const authService = {
 
       console.info("[Fallback Mode] Backend /auth/login offline, memvalidasi akun HR lokal.");
 
-      // 1. Cari apakah email terdaftar di daftar 2 akun HR
+      // 1. Cari apakah email terdaftar di daftar akun HR
       const hrAccount = OFFICIAL_HR_ACCOUNTS.find(
         (acc) => acc.email.toLowerCase() === cleanEmail
       );
@@ -68,9 +86,11 @@ export const authService = {
 
       // 3. Kredensial valid -> kembalikan profil user HR
       return {
+        _id: hrAccount._id || "6a94f8f6e9bd1d2e3f948e57",
         name: hrAccount.name,
         role: "HR",
         email: hrAccount.email,
+        position: hrAccount.position || "HR",
         loginMethod: "email",
       };
     }

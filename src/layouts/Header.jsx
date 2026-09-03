@@ -36,7 +36,7 @@ export default function Header() {
           <p className="font-semibold text-gray-800 leading-none">{userName}</p>
           <span
             className={`inline-block text-[10px] font-bold px-2 py-0.5 mt-1 rounded-full ${
-              userRole === "HR"
+              userRole?.toUpperCase() === "HR"
                 ? "bg-purple-100 text-purple-700"
                 : "bg-blue-100 text-primary"
             }`}

@@ -38,7 +38,7 @@ const STATUS_CONFIG = {
 export default function Dashboard() {
   const { collapsed } = useSidebar();
   const { currentUser } = useAuth();
-  const isHR = currentUser?.role === "HR";
+  const isHR = currentUser?.role?.toUpperCase() === "HR";
   const userName = currentUser?.name || (isHR ? "Admin HR" : "Sari");
 
   const [taskList, setTaskList] = useState(FALLBACK_DASHBOARD_TASKS);

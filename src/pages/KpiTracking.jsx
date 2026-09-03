@@ -174,7 +174,7 @@ export default function KpiTracking() {
   // State Input Real-Time Karyawan untuk Setiap Rumus KPI
   const [kpiInputs, setKpiInputs] = useState(DEFAULT_INPUTS);
 
-  const isHR = currentUser?.role === "HR";
+  const isHR = currentUser?.role?.toUpperCase() === "HR";
   const currentEmployee = isHR
     ? EMPLOYEES.find((e) => e.id === selectedEmp) || EMPLOYEES[0]
     : { id: "EMP-001", name: currentUser?.name || "Sari Wulandari", role: "Frontend Developer" };

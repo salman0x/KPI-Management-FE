@@ -22,7 +22,7 @@ import { employeeService, FALLBACK_EMPLOYEES } from "../services/employeeService
 export default function Employees() {
   const { collapsed } = useSidebar();
   const { currentUser } = useAuth();
-  const isHR = currentUser?.role === "HR";
+  const isHR = currentUser?.role?.toUpperCase() === "HR";
 
   const [employees, setEmployees] = useState(FALLBACK_EMPLOYEES);
   const [selectedRole, setSelectedRole] = useState("All");

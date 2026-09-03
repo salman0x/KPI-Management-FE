@@ -48,7 +48,7 @@ const CATEGORY_BADGES = {
 export default function Tasks() {
   const { collapsed } = useSidebar();
   const { currentUser } = useAuth();
-  const isHR = currentUser?.role === "HR";
+  const isHR = currentUser?.role?.toUpperCase() === "HR";
 
   const [tasks, setTasks] = useState(FALLBACK_TASKS);
   const [viewMode, setViewMode] = useState("kanban"); // "kanban" | "list"
