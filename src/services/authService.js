@@ -37,7 +37,20 @@ export const authService = {
 
       return user;
     } catch (err) {
-      if (err.message && !err.message.includes("Failed to fetch") && !err.message.includes("NetworkError")) {
+      // Fallback validasi lokal jika backend timeout, offline, atau database buffering
+      const isServerDownOrTimeout =
+        !err.message ||
+        err.message.includes("Failed to fetch") ||
+        err.message.includes("NetworkError") ||
+        err.message.includes("buffering timed out") ||
+        err.message.includes("timed out") ||
+        err.message.includes("timeout") ||
+        err.status === 500 ||
+        err.status === 502 ||
+        err.status === 503 ||
+        err.status === 504;
+
+      if (!isServerDownOrTimeout) {
         throw err;
       }
 
@@ -97,7 +110,7 @@ export const authService = {
         localStorage.setItem("kpi_token", token);
       }
       return response.user || response.data?.user || response.data || response;
-    } catch (err) {
+    } catch {
       return {
         name: "Sari Wulandari",
         role: "Karyawan",
